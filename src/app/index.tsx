@@ -10,6 +10,7 @@ import {
   useWindowDimensions,
   Platform,
   Alert,
+  FlatList,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
@@ -350,10 +351,10 @@ export default function CompanionScreen() {
         }}
       >
         {mapImage && (
-          <>
-            <Image source={mapImage} style={[StyleSheet.absoluteFillObject, { width: '100%', height: '100%' }]} contentFit="cover" />
+          <View style={StyleSheet.absoluteFillObject}>
+            <Image source={mapImage} style={{ width: '100%', height: '100%' }} contentFit="cover" />
             <View style={[StyleSheet.absoluteFillObject, { backgroundColor: 'rgba(0, 0, 0, 0.65)' }]} />
-          </>
+          </View>
         )}
         <View style={styles.mapCardContent}>
           <View style={styles.mapHeaderRow}>
@@ -503,12 +504,20 @@ export default function CompanionScreen() {
             )}
           </View>
 
-          <ScrollView contentContainerStyle={styles.scrollList} showsVerticalScrollIndicator={false}>
-            {filteredMaps.map(renderMapItem)}
-            {filteredMaps.length === 0 && (
+          <FlatList
+            data={filteredMaps}
+            renderItem={({ item }) => renderMapItem(item)}
+            keyExtractor={(item) => item.id}
+            contentContainerStyle={styles.scrollList}
+            showsVerticalScrollIndicator={false}
+            initialNumToRender={8}
+            maxToRenderPerBatch={10}
+            windowSize={5}
+            removeClippedSubviews={Platform.OS === 'android'}
+            ListEmptyComponent={
               <Text style={[styles.emptyText, { color: theme.textSecondary }]}>No maps found</Text>
-            )}
-          </ScrollView>
+            }
+          />
         </View>
 
         {/* Col 2: Operator Grid */}
@@ -567,12 +576,22 @@ export default function CompanionScreen() {
                 </View>
               </View>
 
-              <ScrollView contentContainerStyle={styles.opGrid} showsVerticalScrollIndicator={false}>
-                {filteredOperators.map(renderOperatorItem)}
-                {filteredOperators.length === 0 && (
+              <FlatList
+                data={filteredOperators}
+                renderItem={({ item }) => renderOperatorItem(item)}
+                keyExtractor={(item) => item.id}
+                numColumns={2}
+                columnWrapperStyle={{ justifyContent: 'space-between', marginBottom: Spacing.two }}
+                contentContainerStyle={styles.opGrid}
+                showsVerticalScrollIndicator={false}
+                initialNumToRender={12}
+                maxToRenderPerBatch={16}
+                windowSize={5}
+                removeClippedSubviews={Platform.OS === 'android'}
+                ListEmptyComponent={
                   <Text style={[styles.emptyText, { color: theme.textSecondary }]}>No operators found</Text>
-                )}
-              </ScrollView>
+                }
+              />
             </>
           )}
         </View>
@@ -598,10 +617,10 @@ export default function CompanionScreen() {
             <View style={styles.videosContainer}>
               <View style={[styles.dossierBanner, { borderColor: theme.border }]}>
                 {mapImage && (
-                  <>
-                    <Image source={mapImage} style={[StyleSheet.absoluteFillObject, { width: '100%', height: '100%' }]} contentFit="cover" />
+                  <View style={StyleSheet.absoluteFillObject}>
+                    <Image source={mapImage} style={{ width: '100%', height: '100%' }} contentFit="cover" />
                     <View style={[StyleSheet.absoluteFillObject, { backgroundColor: 'rgba(11, 12, 16, 0.8)' }]} />
-                  </>
+                  </View>
                 )}
                 <View style={styles.dossierContent}>
                   {opImage && (
@@ -682,12 +701,20 @@ export default function CompanionScreen() {
               )}
             </View>
 
-            <ScrollView contentContainerStyle={styles.mobileScrollContent}>
-              {filteredMaps.map(renderMapItem)}
-              {filteredMaps.length === 0 && (
+            <FlatList
+              data={filteredMaps}
+              renderItem={({ item }) => renderMapItem(item)}
+              keyExtractor={(item) => item.id}
+              contentContainerStyle={styles.mobileScrollContent}
+              showsVerticalScrollIndicator={false}
+              initialNumToRender={8}
+              maxToRenderPerBatch={10}
+              windowSize={5}
+              removeClippedSubviews={Platform.OS === 'android'}
+              ListEmptyComponent={
                 <Text style={[styles.emptyText, { color: theme.textSecondary }]}>No maps found</Text>
-              )}
-            </ScrollView>
+              }
+            />
           </View>
         )}
 
@@ -756,12 +783,22 @@ export default function CompanionScreen() {
               </View>
             </View>
 
-            <ScrollView contentContainerStyle={styles.mobileOpGridContent}>
-              {filteredOperators.map(renderOperatorItem)}
-              {filteredOperators.length === 0 && (
+            <FlatList
+              data={filteredOperators}
+              renderItem={({ item }) => renderOperatorItem(item)}
+              keyExtractor={(item) => item.id}
+              numColumns={2}
+              columnWrapperStyle={{ justifyContent: 'space-between', marginBottom: Spacing.two }}
+              contentContainerStyle={styles.mobileOpGridContent}
+              showsVerticalScrollIndicator={false}
+              initialNumToRender={12}
+              maxToRenderPerBatch={16}
+              windowSize={5}
+              removeClippedSubviews={Platform.OS === 'android'}
+              ListEmptyComponent={
                 <Text style={[styles.emptyText, { color: theme.textSecondary }]}>No operators found</Text>
-              )}
-            </ScrollView>
+              }
+            />
           </View>
         )}
 
@@ -782,10 +819,10 @@ export default function CompanionScreen() {
             <View style={styles.videosContainer}>
               <View style={[styles.dossierBanner, { borderColor: theme.border, marginHorizontal: Spacing.three }]}>
                 {mapImage && (
-                  <>
-                    <Image source={mapImage} style={[StyleSheet.absoluteFillObject, { width: '100%', height: '100%' }]} contentFit="cover" />
+                  <View style={StyleSheet.absoluteFillObject}>
+                    <Image source={mapImage} style={{ width: '100%', height: '100%' }} contentFit="cover" />
                     <View style={[StyleSheet.absoluteFillObject, { backgroundColor: 'rgba(11, 12, 16, 0.8)' }]} />
-                  </>
+                  </View>
                 )}
                 <View style={styles.dossierContent}>
                   {opImage && (
