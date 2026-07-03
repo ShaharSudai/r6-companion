@@ -352,7 +352,7 @@ export default function CompanionScreen() {
       >
         {mapImage && (
           <View style={StyleSheet.absoluteFillObject}>
-            <Image source={mapImage} style={{ width: '100%', height: '100%' }} contentFit="cover" />
+            <Image source={mapImage} style={{ width: '100%', height: '100%' }} contentFit="cover" transition={null} />
             <View style={[StyleSheet.absoluteFillObject, { backgroundColor: 'rgba(0, 0, 0, 0.65)' }]} />
           </View>
         )}
@@ -396,7 +396,7 @@ export default function CompanionScreen() {
       >
         <View style={[styles.opRoleBar, { backgroundColor: roleColor }]} />
         {opImage && (
-          <Image source={opImage} style={styles.opAvatar} contentFit="contain" />
+          <Image source={opImage} style={styles.opAvatar} contentFit="contain" transition={null} />
         )}
         <Text style={[styles.opName, { color: theme.text }]}>{opItem.name}</Text>
         <Text style={[styles.opRoleText, { color: roleColor }]}>
@@ -511,9 +511,10 @@ export default function CompanionScreen() {
             contentContainerStyle={styles.scrollList}
             showsVerticalScrollIndicator={false}
             initialNumToRender={8}
-            maxToRenderPerBatch={10}
-            windowSize={5}
+            maxToRenderPerBatch={4}
+            windowSize={3}
             removeClippedSubviews={Platform.OS === 'android'}
+            getItemLayout={(data, index) => ({ length: 88, offset: 88 * index, index })}
             ListEmptyComponent={
               <Text style={[styles.emptyText, { color: theme.textSecondary }]}>No maps found</Text>
             }
@@ -585,8 +586,8 @@ export default function CompanionScreen() {
                 contentContainerStyle={styles.opGrid}
                 showsVerticalScrollIndicator={false}
                 initialNumToRender={12}
-                maxToRenderPerBatch={16}
-                windowSize={5}
+                maxToRenderPerBatch={6}
+                windowSize={3}
                 removeClippedSubviews={Platform.OS === 'android'}
                 ListEmptyComponent={
                   <Text style={[styles.emptyText, { color: theme.textSecondary }]}>No operators found</Text>
@@ -618,13 +619,13 @@ export default function CompanionScreen() {
               <View style={[styles.dossierBanner, { borderColor: theme.border }]}>
                 {mapImage && (
                   <View style={StyleSheet.absoluteFillObject}>
-                    <Image source={mapImage} style={{ width: '100%', height: '100%' }} contentFit="cover" />
+                    <Image source={mapImage} style={{ width: '100%', height: '100%' }} contentFit="cover" transition={null} />
                     <View style={[StyleSheet.absoluteFillObject, { backgroundColor: 'rgba(11, 12, 16, 0.8)' }]} />
                   </View>
                 )}
                 <View style={styles.dossierContent}>
                   {opImage && (
-                    <Image source={opImage} style={styles.dossierOpAvatar} contentFit="contain" />
+                    <Image source={opImage} style={styles.dossierOpAvatar} contentFit="contain" transition={null} />
                   )}
                   <View style={{ flex: 1 }}>
                     <Text style={styles.dossierTitle}>
@@ -708,9 +709,10 @@ export default function CompanionScreen() {
               contentContainerStyle={styles.mobileScrollContent}
               showsVerticalScrollIndicator={false}
               initialNumToRender={8}
-              maxToRenderPerBatch={10}
-              windowSize={5}
+              maxToRenderPerBatch={4}
+              windowSize={3}
               removeClippedSubviews={Platform.OS === 'android'}
+              getItemLayout={(data, index) => ({ length: 88, offset: 88 * index, index })}
               ListEmptyComponent={
                 <Text style={[styles.emptyText, { color: theme.textSecondary }]}>No maps found</Text>
               }
@@ -792,8 +794,8 @@ export default function CompanionScreen() {
               contentContainerStyle={styles.mobileOpGridContent}
               showsVerticalScrollIndicator={false}
               initialNumToRender={12}
-              maxToRenderPerBatch={16}
-              windowSize={5}
+              maxToRenderPerBatch={6}
+              windowSize={3}
               removeClippedSubviews={Platform.OS === 'android'}
               ListEmptyComponent={
                 <Text style={[styles.emptyText, { color: theme.textSecondary }]}>No operators found</Text>
@@ -820,13 +822,13 @@ export default function CompanionScreen() {
               <View style={[styles.dossierBanner, { borderColor: theme.border, marginHorizontal: Spacing.three }]}>
                 {mapImage && (
                   <View style={StyleSheet.absoluteFillObject}>
-                    <Image source={mapImage} style={{ width: '100%', height: '100%' }} contentFit="cover" />
+                    <Image source={mapImage} style={{ width: '100%', height: '100%' }} contentFit="cover" transition={null} />
                     <View style={[StyleSheet.absoluteFillObject, { backgroundColor: 'rgba(11, 12, 16, 0.8)' }]} />
                   </View>
                 )}
                 <View style={styles.dossierContent}>
                   {opImage && (
-                    <Image source={opImage} style={styles.dossierOpAvatar} contentFit="contain" />
+                    <Image source={opImage} style={styles.dossierOpAvatar} contentFit="contain" transition={null} />
                   )}
                   <View style={{ flex: 1 }}>
                     <Text style={styles.dossierTitle}>
@@ -1154,9 +1156,6 @@ const styles = StyleSheet.create({
   },
   opGrid: {
     paddingHorizontal: Spacing.three,
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Spacing.two,
     paddingBottom: Spacing.five,
   },
   opTile: {
@@ -1427,9 +1426,6 @@ const styles = StyleSheet.create({
   },
   mobileOpGridContent: {
     paddingHorizontal: Spacing.three,
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Spacing.two,
     paddingBottom: BottomTabInset + 40,
   },
   addFloatingBtnMobile: {
