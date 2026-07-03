@@ -707,7 +707,7 @@ export default function CompanionScreen() {
 
             <View style={styles.mobileHeader}>
               <Text style={[styles.mobileTitle, { color: theme.text }]}>SELECT OPERATOR</Text>
-              <Text style={[styles.mobileSubtitle, { color: theme.textSecondary }]}>Choose matching tactical agent</Text>
+              <Text style={[styles.mobileSubtitle, { color: theme.textSecondary }]}>Choose matching tactical operator</Text>
             </View>
 
             {/* Operator Filters */}
@@ -750,7 +750,7 @@ export default function CompanionScreen() {
             <ScrollView contentContainerStyle={styles.mobileOpGridContent}>
               {filteredOperators.map(renderOperatorItem)}
               {filteredOperators.length === 0 && (
-                <Text style={[styles.emptyText, { color: theme.textSecondary }]}>No agents found</Text>
+                <Text style={[styles.emptyText, { color: theme.textSecondary }]}>No operators found</Text>
               )}
             </ScrollView>
           </View>
@@ -763,7 +763,7 @@ export default function CompanionScreen() {
             <View style={[styles.breadcrumbRow, { borderBottomWidth: 1, borderColor: theme.border }]}>
               <Pressable style={styles.backBtn} onPress={() => setMobileStep(1)}>
                 <TacticalIcon name="back" color={theme.primary} size={16} />
-                <Text style={[styles.backBtnText, { color: theme.primary }]}>AGENTS</Text>
+                <Text style={[styles.backBtnText, { color: theme.primary }]}>OPERATORS</Text>
               </Pressable>
               <Text style={[styles.breadcrumbText, { color: theme.textSecondary }]} numberOfLines={1}>
                 🗺️ {selectedMap.name} &gt; 🥷 {selectedOperator.name}
