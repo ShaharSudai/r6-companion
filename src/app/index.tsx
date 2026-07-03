@@ -352,7 +352,7 @@ export default function CompanionScreen() {
       >
         {mapImage && (
           <View style={StyleSheet.absoluteFillObject}>
-            <Image source={mapImage} style={{ width: '100%', height: '100%' }} contentFit="cover" transition={null} />
+            <Image source={mapImage} style={{ width: '100%', height: '100%' }} contentFit="cover" transition={null} cachePolicy="memory-disk" />
             <View style={[StyleSheet.absoluteFillObject, { backgroundColor: 'rgba(0, 0, 0, 0.65)' }]} />
           </View>
         )}
@@ -396,7 +396,7 @@ export default function CompanionScreen() {
       >
         <View style={[styles.opRoleBar, { backgroundColor: roleColor }]} />
         {opImage && (
-          <Image source={opImage} style={styles.opAvatar} contentFit="contain" transition={null} />
+          <Image source={opImage} style={styles.opAvatar} contentFit="contain" transition={null} cachePolicy="memory-disk" />
         )}
         <Text style={[styles.opName, { color: theme.text }]}>{opItem.name}</Text>
         <Text style={[styles.opRoleText, { color: roleColor }]}>
@@ -512,7 +512,7 @@ export default function CompanionScreen() {
             showsVerticalScrollIndicator={false}
             initialNumToRender={8}
             maxToRenderPerBatch={4}
-            windowSize={3}
+            windowSize={9}
             removeClippedSubviews={Platform.OS === 'android'}
             getItemLayout={(data, index) => ({ length: 88, offset: 88 * index, index })}
             ListEmptyComponent={
@@ -619,13 +619,13 @@ export default function CompanionScreen() {
               <View style={[styles.dossierBanner, { borderColor: theme.border }]}>
                 {mapImage && (
                   <View style={StyleSheet.absoluteFillObject}>
-                    <Image source={mapImage} style={{ width: '100%', height: '100%' }} contentFit="cover" transition={null} />
+                    <Image source={mapImage} style={{ width: '100%', height: '100%' }} contentFit="cover" transition={null} cachePolicy="memory-disk" />
                     <View style={[StyleSheet.absoluteFillObject, { backgroundColor: 'rgba(11, 12, 16, 0.8)' }]} />
                   </View>
                 )}
                 <View style={styles.dossierContent}>
                   {opImage && (
-                    <Image source={opImage} style={styles.dossierOpAvatar} contentFit="contain" transition={null} />
+                    <Image source={opImage} style={styles.dossierOpAvatar} contentFit="contain" transition={null} cachePolicy="memory-disk" />
                   )}
                   <View style={{ flex: 1 }}>
                     <Text style={styles.dossierTitle}>
@@ -710,7 +710,7 @@ export default function CompanionScreen() {
               showsVerticalScrollIndicator={false}
               initialNumToRender={8}
               maxToRenderPerBatch={4}
-              windowSize={3}
+              windowSize={9}
               removeClippedSubviews={Platform.OS === 'android'}
               getItemLayout={(data, index) => ({ length: 88, offset: 88 * index, index })}
               ListEmptyComponent={
@@ -822,13 +822,13 @@ export default function CompanionScreen() {
               <View style={[styles.dossierBanner, { borderColor: theme.border, marginHorizontal: Spacing.three }]}>
                 {mapImage && (
                   <View style={StyleSheet.absoluteFillObject}>
-                    <Image source={mapImage} style={{ width: '100%', height: '100%' }} contentFit="cover" transition={null} />
+                    <Image source={mapImage} style={{ width: '100%', height: '100%' }} contentFit="cover" transition={null} cachePolicy="memory-disk" />
                     <View style={[StyleSheet.absoluteFillObject, { backgroundColor: 'rgba(11, 12, 16, 0.8)' }]} />
                   </View>
                 )}
                 <View style={styles.dossierContent}>
                   {opImage && (
-                    <Image source={opImage} style={styles.dossierOpAvatar} contentFit="contain" transition={null} />
+                    <Image source={opImage} style={styles.dossierOpAvatar} contentFit="contain" transition={null} cachePolicy="memory-disk" />
                   )}
                   <View style={{ flex: 1 }}>
                     <Text style={styles.dossierTitle}>
@@ -1063,6 +1063,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 13,
     paddingLeft: Spacing.two,
+    paddingVertical: 0,
     height: 32,
   },
   scrollList: {
