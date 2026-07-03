@@ -1221,10 +1221,16 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   dossierContent: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
     flexDirection: 'row',
     alignItems: 'center',
+    paddingHorizontal: Spacing.four,
     gap: Spacing.three,
-    zIndex: 1,
+    zIndex: 2,
   },
   dossierOpAvatar: {
     width: 64,
