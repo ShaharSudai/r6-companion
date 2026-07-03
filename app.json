@@ -37,6 +37,13 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "17c26d5d-73fa-4be4-abbe-c7657ebd6bc4"
+      }
+    },
+    "owner": "shahar24s-team"
   }
 }

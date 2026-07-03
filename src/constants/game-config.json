@@ -1,0 +1,491 @@
+{
+  "maps": [
+    {
+      "id": "clubhouse",
+      "name": "Clubhouse"
+    },
+    {
+      "id": "oregon",
+      "name": "Oregon"
+    },
+    {
+      "id": "bank",
+      "name": "Bank"
+    },
+    {
+      "id": "chalet",
+      "name": "Chalet"
+    },
+    {
+      "id": "consulate",
+      "name": "Consulate"
+    },
+    {
+      "id": "kafe_dostoyevsky",
+      "name": "Kafe Dostoyevsky"
+    },
+    {
+      "id": "border",
+      "name": "Border"
+    },
+    {
+      "id": "coastline",
+      "name": "Coastline"
+    },
+    {
+      "id": "villa",
+      "name": "Villa"
+    },
+    {
+      "id": "theme_park",
+      "name": "Theme Park"
+    },
+    {
+      "id": "outback",
+      "name": "Outback"
+    },
+    {
+      "id": "nighthaven_labs",
+      "name": "Nighthaven Labs"
+    },
+    {
+      "id": "lair",
+      "name": "Lair"
+    },
+    {
+      "id": "emerald_plains",
+      "name": "Emerald Plains"
+    },
+    {
+      "id": "skyscraper",
+      "name": "Skyscraper"
+    },
+    {
+      "id": "fortress",
+      "name": "Fortress"
+    },
+    {
+      "id": "kanal",
+      "name": "Kanal"
+    },
+    {
+      "id": "calypso_casino",
+      "name": "Calypso Casino"
+    },
+    {
+      "id": "stadium_bravo",
+      "name": "Stadium Bravo"
+    },
+    {
+      "id": "favela",
+      "name": "Favela"
+    },
+    {
+      "id": "hereford_base",
+      "name": "Hereford Base"
+    },
+    {
+      "id": "house",
+      "name": "House"
+    },
+    {
+      "id": "presidential_plane",
+      "name": "Presidential Plane"
+    },
+    {
+      "id": "tower",
+      "name": "Tower"
+    },
+    {
+      "id": "yacht",
+      "name": "Yacht"
+    }
+  ],
+  "operators": [
+    {
+      "id": "sledge",
+      "name": "Sledge",
+      "role": "attacker"
+    },
+    {
+      "id": "thatcher",
+      "name": "Thatcher",
+      "role": "attacker"
+    },
+    {
+      "id": "ash",
+      "name": "Ash",
+      "role": "attacker"
+    },
+    {
+      "id": "thermite",
+      "name": "Thermite",
+      "role": "attacker"
+    },
+    {
+      "id": "twitch",
+      "name": "Twitch",
+      "role": "attacker"
+    },
+    {
+      "id": "montagne",
+      "name": "Montagne",
+      "role": "attacker"
+    },
+    {
+      "id": "glaz",
+      "name": "Glaz",
+      "role": "attacker"
+    },
+    {
+      "id": "fuze",
+      "name": "Fuze",
+      "role": "attacker"
+    },
+    {
+      "id": "blitz",
+      "name": "Blitz",
+      "role": "attacker"
+    },
+    {
+      "id": "iq",
+      "name": "IQ",
+      "role": "attacker"
+    },
+    {
+      "id": "buck",
+      "name": "Buck",
+      "role": "attacker"
+    },
+    {
+      "id": "blackbeard",
+      "name": "Blackbeard",
+      "role": "attacker"
+    },
+    {
+      "id": "capitao",
+      "name": "Capitão",
+      "role": "attacker"
+    },
+    {
+      "id": "hibana",
+      "name": "Hibana",
+      "role": "attacker"
+    },
+    {
+      "id": "jackal",
+      "name": "Jackal",
+      "role": "attacker"
+    },
+    {
+      "id": "ying",
+      "name": "Ying",
+      "role": "attacker"
+    },
+    {
+      "id": "zofia",
+      "name": "Zofia",
+      "role": "attacker"
+    },
+    {
+      "id": "dokkaebi",
+      "name": "Dokkaebi",
+      "role": "attacker"
+    },
+    {
+      "id": "lion",
+      "name": "Lion",
+      "role": "attacker"
+    },
+    {
+      "id": "finka",
+      "name": "Finka",
+      "role": "attacker"
+    },
+    {
+      "id": "maverick",
+      "name": "Maverick",
+      "role": "attacker"
+    },
+    {
+      "id": "nomad",
+      "name": "Nomad",
+      "role": "attacker"
+    },
+    {
+      "id": "gridlock",
+      "name": "Gridlock",
+      "role": "attacker"
+    },
+    {
+      "id": "nokk",
+      "name": "Nøkk",
+      "role": "attacker"
+    },
+    {
+      "id": "amaru",
+      "name": "Amaru",
+      "role": "attacker"
+    },
+    {
+      "id": "kali",
+      "name": "Kali",
+      "role": "attacker"
+    },
+    {
+      "id": "iana",
+      "name": "Iana",
+      "role": "attacker"
+    },
+    {
+      "id": "ace",
+      "name": "Ace",
+      "role": "attacker"
+    },
+    {
+      "id": "zero",
+      "name": "Zero",
+      "role": "attacker"
+    },
+    {
+      "id": "flores",
+      "name": "Flores",
+      "role": "attacker"
+    },
+    {
+      "id": "osa",
+      "name": "Osa",
+      "role": "attacker"
+    },
+    {
+      "id": "sens",
+      "name": "Sens",
+      "role": "attacker"
+    },
+    {
+      "id": "grim",
+      "name": "Grim",
+      "role": "attacker"
+    },
+    {
+      "id": "brava",
+      "name": "Brava",
+      "role": "attacker"
+    },
+    {
+      "id": "ram",
+      "name": "Ram",
+      "role": "attacker"
+    },
+    {
+      "id": "deimos",
+      "name": "Deimos",
+      "role": "attacker"
+    },
+    {
+      "id": "rauora",
+      "name": "Rauora",
+      "role": "attacker"
+    },
+    {
+      "id": "solid_snake",
+      "name": "Solid Snake",
+      "role": "attacker"
+    },
+    {
+      "id": "striker",
+      "name": "Striker",
+      "role": "attacker"
+    },
+    {
+      "id": "smoke",
+      "name": "Smoke",
+      "role": "defender"
+    },
+    {
+      "id": "mute",
+      "name": "Mute",
+      "role": "defender"
+    },
+    {
+      "id": "castle",
+      "name": "Castle",
+      "role": "defender"
+    },
+    {
+      "id": "pulse",
+      "name": "Pulse",
+      "role": "defender"
+    },
+    {
+      "id": "doc",
+      "name": "Doc",
+      "role": "defender"
+    },
+    {
+      "id": "rook",
+      "name": "Rook",
+      "role": "defender"
+    },
+    {
+      "id": "kapkan",
+      "name": "Kapkan",
+      "role": "defender"
+    },
+    {
+      "id": "tachanka",
+      "name": "Tachanka",
+      "role": "defender"
+    },
+    {
+      "id": "jager",
+      "name": "Jäger",
+      "role": "defender"
+    },
+    {
+      "id": "bandit",
+      "name": "Bandit",
+      "role": "defender"
+    },
+    {
+      "id": "frost",
+      "name": "Frost",
+      "role": "defender"
+    },
+    {
+      "id": "valkyrie",
+      "name": "Valkyrie",
+      "role": "defender"
+    },
+    {
+      "id": "caveira",
+      "name": "Caveira",
+      "role": "defender"
+    },
+    {
+      "id": "echo",
+      "name": "Echo",
+      "role": "defender"
+    },
+    {
+      "id": "mira",
+      "name": "Mira",
+      "role": "defender"
+    },
+    {
+      "id": "lesion",
+      "name": "Lesion",
+      "role": "defender"
+    },
+    {
+      "id": "ela",
+      "name": "Ela",
+      "role": "defender"
+    },
+    {
+      "id": "vigil",
+      "name": "Vigil",
+      "role": "defender"
+    },
+    {
+      "id": "alibi",
+      "name": "Alibi",
+      "role": "defender"
+    },
+    {
+      "id": "maestro",
+      "name": "Maestro",
+      "role": "defender"
+    },
+    {
+      "id": "clash",
+      "name": "Clash",
+      "role": "defender"
+    },
+    {
+      "id": "kaid",
+      "name": "Kaid",
+      "role": "defender"
+    },
+    {
+      "id": "mozzie",
+      "name": "Mozzie",
+      "role": "defender"
+    },
+    {
+      "id": "warden",
+      "name": "Warden",
+      "role": "defender"
+    },
+    {
+      "id": "goyo",
+      "name": "Goyo",
+      "role": "defender"
+    },
+    {
+      "id": "wamai",
+      "name": "Wamai",
+      "role": "defender"
+    },
+    {
+      "id": "oryx",
+      "name": "Oryx",
+      "role": "defender"
+    },
+    {
+      "id": "melusi",
+      "name": "Melusi",
+      "role": "defender"
+    },
+    {
+      "id": "aruni",
+      "name": "Aruni",
+      "role": "defender"
+    },
+    {
+      "id": "thunderbird",
+      "name": "Thunderbird",
+      "role": "defender"
+    },
+    {
+      "id": "thorn",
+      "name": "Thorn",
+      "role": "defender"
+    },
+    {
+      "id": "azami",
+      "name": "Azami",
+      "role": "defender"
+    },
+    {
+      "id": "solis",
+      "name": "Solis",
+      "role": "defender"
+    },
+    {
+      "id": "fenrir",
+      "name": "Fenrir",
+      "role": "defender"
+    },
+    {
+      "id": "tubarao",
+      "name": "Tubarão",
+      "role": "defender"
+    },
+    {
+      "id": "skopos",
+      "name": "Skopos",
+      "role": "defender"
+    },
+    {
+      "id": "denari",
+      "name": "Denari",
+      "role": "defender"
+    },
+    {
+      "id": "sentry",
+      "name": "Sentry",
+      "role": "defender"
+    }
+  ]
+}

@@ -14,13 +14,25 @@ export const Colors = {
     backgroundElement: '#F0F0F3',
     backgroundSelected: '#E0E1E6',
     textSecondary: '#60646C',
+    primary: '#F4B41A', // R6 Siege Tactical Yellow
+    danger: '#D90429',
+    success: '#2EC4B6',
+    attacker: '#0066CC',
+    defender: '#CC3300',
+    border: '#E0E0E0',
   },
   dark: {
     text: '#ffffff',
-    background: '#000000',
-    backgroundElement: '#212225',
-    backgroundSelected: '#2E3135',
-    textSecondary: '#B0B4BA',
+    background: '#0B0C10', // Darker sleek charcoal/black background
+    backgroundElement: '#1F2833', // Tactical panel blue-gray
+    backgroundSelected: '#45A29E', // Active tactical highlights
+    textSecondary: '#C5C6C7',
+    primary: '#F4B41A', // R6 Siege Tactical Yellow
+    danger: '#FF4D4D',
+    success: '#00F5D4',
+    attacker: '#3C91FF',
+    defender: '#FF5E5E',
+    border: '#2C353F',
   },
 } as const;
 

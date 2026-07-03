@@ -1,98 +1,1464 @@
-import * as Device from 'expo-device';
-import { Platform, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import {
+  StyleSheet,
+  View,
+  Text,
+  TextInput,
+  Pressable,
+  ScrollView,
+  Modal,
+  useWindowDimensions,
+  Platform,
+  Alert,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Image } from 'expo-image';
+import * as Linking from 'expo-linking';
+import * as WebBrowser from 'expo-web-browser';
 
-import { AnimatedIcon } from '@/components/animated-icon';
-import { HintRow } from '@/components/hint-row';
-import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { WebBadge } from '@/components/web-badge';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+import { Spacing, BottomTabInset } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
+import { useLinksDb, VideoLink } from '@/hooks/use-links-db';
+import gameConfig from '@/constants/game-config.json';
+import { MapImages, OperatorImages } from '@/constants/game-assets';
 
-function getDevMenuHint() {
-  if (Platform.OS === 'web') {
-    return <ThemedText type="small">use browser devtools</ThemedText>;
+// Helper to determine platform domain for badge styling
+function getPlatformBadge(url: string) {
+  const lowercaseUrl = url.toLowerCase();
+  if (lowercaseUrl.includes('youtube.com') || lowercaseUrl.includes('youtu.be')) {
+    return { name: 'YouTube', color: '#FF0000', icon: 'play' };
   }
-  if (Device.isDevice) {
-    return (
-      <ThemedText type="small">
-        shake device or press <ThemedText type="code">m</ThemedText> in terminal
-      </ThemedText>
-    );
+  if (lowercaseUrl.includes('tiktok.com')) {
+    return { name: 'TikTok', color: '#00F2FE', icon: 'link' };
   }
-  const shortcut = Platform.OS === 'android' ? 'cmd+m (or ctrl+m)' : 'cmd+d';
-  return (
-    <ThemedText type="small">
-      press <ThemedText type="code">{shortcut}</ThemedText>
-    </ThemedText>
-  );
+  if (lowercaseUrl.includes('twitch.tv')) {
+    return { name: 'Twitch', color: '#9146FF', icon: 'play' };
+  }
+  if (lowercaseUrl.includes('instagram.com')) {
+    return { name: 'Instagram', color: '#E1306C', icon: 'link' };
+  }
+  return { name: 'Video', color: '#F4B41A', icon: 'link' };
 }
 
-export default function HomeScreen() {
+// Icon helper component rendering pure CSS/View custom cross-platform shapes
+function TacticalIcon({
+  name,
+  color,
+  size = 16,
+}: {
+  name: 'plus' | 'trash' | 'link' | 'back' | 'search' | 'close' | 'play' | 'map' | 'person' | 'lock';
+  color: string;
+  size?: number;
+}) {
+  switch (name) {
+    case 'plus':
+      return (
+        <View style={{ width: size, height: size, justifyContent: 'center', alignItems: 'center' }}>
+          <View style={{ width: size * 0.75, height: 2, backgroundColor: color, position: 'absolute' }} />
+          <View style={{ width: 2, height: size * 0.75, backgroundColor: color, position: 'absolute' }} />
+        </View>
+      );
+    case 'close':
+      return (
+        <View style={{ width: size, height: size, justifyContent: 'center', alignItems: 'center' }}>
+          <View style={{ width: size * 0.7, height: 2, backgroundColor: color, position: 'absolute', transform: [{ rotate: '45deg' }] }} />
+          <View style={{ width: size * 0.7, height: 2, backgroundColor: color, position: 'absolute', transform: [{ rotate: '-45deg' }] }} />
+        </View>
+      );
+    case 'trash':
+      return (
+        <View style={{ width: size, height: size + 2, justifyContent: 'center', alignItems: 'center', gap: 1 }}>
+          <View style={{ width: size * 0.35, height: 1.5, backgroundColor: color }} />
+          <View style={{ width: size * 0.75, height: 1.5, backgroundColor: color, borderRadius: 1 }} />
+          <View style={{
+            width: size * 0.55,
+            height: size * 0.65,
+            borderWidth: 1.5,
+            borderColor: color,
+            borderTopWidth: 0,
+            borderBottomLeftRadius: 2,
+            borderBottomRightRadius: 2,
+            justifyContent: 'space-around',
+            flexDirection: 'row',
+            paddingHorizontal: 2,
+            paddingVertical: 1
+          }}>
+            <View style={{ width: 1, height: '90%', backgroundColor: color, opacity: 0.8 }} />
+            <View style={{ width: 1, height: '90%', backgroundColor: color, opacity: 0.8 }} />
+          </View>
+        </View>
+      );
+    case 'back':
+      return (
+        <View style={{ width: size, height: size, justifyContent: 'center', alignItems: 'center' }}>
+          <View style={{
+            width: size * 0.45,
+            height: size * 0.45,
+            borderLeftWidth: 2,
+            borderBottomWidth: 2,
+            borderColor: color,
+            transform: [{ rotate: '45deg' }],
+            marginLeft: size * 0.15
+          }} />
+        </View>
+      );
+    case 'play':
+      return (
+        <View style={{
+          width: 0,
+          height: 0,
+          backgroundColor: 'transparent',
+          borderStyle: 'solid',
+          borderLeftWidth: size * 0.7,
+          borderRightWidth: 0,
+          borderBottomWidth: size * 0.4,
+          borderTopWidth: size * 0.4,
+          borderLeftColor: color,
+          borderRightColor: 'transparent',
+          borderBottomColor: 'transparent',
+          borderTopColor: 'transparent',
+          marginLeft: size * 0.15
+        }} />
+      );
+    case 'search':
+      return (
+        <View style={{ width: size, height: size, justifyContent: 'center', alignItems: 'center' }}>
+          <View style={{
+            width: size * 0.55,
+            height: size * 0.55,
+            borderRadius: 99,
+            borderWidth: 1.8,
+            borderColor: color,
+            position: 'absolute',
+            top: 1,
+            left: 1,
+          }} />
+          <View style={{
+            width: 1.8,
+            height: size * 0.45,
+            backgroundColor: color,
+            position: 'absolute',
+            bottom: 0,
+            right: 0,
+            transform: [{ rotate: '-45deg' }]
+          }} />
+        </View>
+      );
+    case 'link':
+      return (
+        <View style={{ width: size, height: size, justifyContent: 'center', alignItems: 'center' }}>
+          <View style={{
+            width: size * 0.65,
+            height: size * 0.65,
+            borderWidth: 1.2,
+            borderColor: color,
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            borderTopWidth: 0,
+            borderRightWidth: 0,
+          }} />
+          <View style={{
+            width: size * 0.3,
+            height: 1.2,
+            backgroundColor: color,
+            position: 'absolute',
+            bottom: size * 0.65,
+            left: 0
+          }} />
+          <View style={{
+            width: 1.2,
+            height: size * 0.3,
+            backgroundColor: color,
+            position: 'absolute',
+            bottom: 0,
+            left: size * 0.65
+          }} />
+          <View style={{
+            width: 1.2,
+            height: size * 0.65,
+            backgroundColor: color,
+            position: 'absolute',
+            transform: [{ rotate: '-45deg' }],
+            top: size * 0.08,
+            right: size * 0.08
+          }} />
+          <View style={{
+            width: size * 0.3,
+            height: size * 0.3,
+            borderTopWidth: 1.2,
+            borderRightWidth: 1.2,
+            borderColor: color,
+            position: 'absolute',
+            top: 0,
+            right: 0
+          }} />
+        </View>
+      );
+    case 'map':
+      return <Text style={{ fontSize: size }}>🗺️</Text>;
+    case 'person':
+      return <Text style={{ fontSize: size }}>🥷</Text>;
+    case 'lock':
+      return <Text style={{ fontSize: size }}>🔒</Text>;
+    default:
+      return null;
+  }
+}
+
+export default function CompanionScreen() {
+  const theme = useTheme();
+  const { width } = useWindowDimensions();
+  const isDesktop = width >= 768;
+
+  // Load config maps and operators with safe fallbacks
+  const maps = gameConfig.maps || [];
+  const operators = gameConfig.operators || [];
+
+  // Database hook
+  const { getLinks, addLink, deleteLink } = useLinksDb();
+
+  // App state
+  const [selectedMapId, setSelectedMapId] = useState<string | null>(null);
+  const [selectedOperatorId, setSelectedOperatorId] = useState<string | null>(null);
+  
+  // Mobile step state: 0 = map selection, 1 = operator selection, 2 = videos
+  const [mobileStep, setMobileStep] = useState(0);
+
+  // Search & Filter state
+  const [mapSearch, setMapSearch] = useState('');
+  const [opSearch, setOpSearch] = useState('');
+  const [opRoleFilter, setOpRoleFilter] = useState<'all' | 'attacker' | 'defender'>('all');
+
+  // Add Link Modal state
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [linkHeadline, setLinkHeadline] = useState('');
+  const [linkUrl, setLinkUrl] = useState('');
+
+  // Selected entities details
+  const selectedMap = maps.find((m) => m.id === selectedMapId);
+  const selectedOperator = operators.find((o) => o.id === selectedOperatorId);
+  const mapImage = selectedMapId ? MapImages[selectedMapId] : null;
+  const opImage = selectedOperatorId ? OperatorImages[selectedOperatorId] : null;
+
+  // Filtering maps
+  const filteredMaps = maps.filter((m) =>
+    m.name.toLowerCase().includes(mapSearch.toLowerCase())
+  );
+
+  // Filtering operators
+  const filteredOperators = operators.filter((o) => {
+    const matchesSearch = o.name.toLowerCase().includes(opSearch.toLowerCase());
+    const matchesRole = opRoleFilter === 'all' || o.role === opRoleFilter;
+    return matchesSearch && matchesRole;
+  });
+
+  // Load videos for current selection
+  const currentVideos = selectedMapId && selectedOperatorId 
+    ? getLinks(selectedMapId, selectedOperatorId) 
+    : [];
+
+  const handleOpenLink = async (url: string) => {
+    let formattedUrl = url.trim();
+    if (!/^https?:\/\//i.test(formattedUrl)) {
+      formattedUrl = `https://${formattedUrl}`;
+    }
+    try {
+      const canOpen = await Linking.canOpenURL(formattedUrl);
+      if (canOpen) {
+        await Linking.openURL(formattedUrl);
+      } else {
+        await WebBrowser.openBrowserAsync(formattedUrl);
+      }
+    } catch {
+      if (Platform.OS === 'web') {
+        window.open(formattedUrl, '_blank');
+      } else {
+        Alert.alert('Error', 'Could not open video URL.');
+      }
+    }
+  };
+
+  const handleAddLink = async () => {
+    if (!selectedMapId || !selectedOperatorId) return;
+    if (!linkHeadline.trim()) {
+      if (Platform.OS === 'web') alert('Please enter a headline');
+      else Alert.alert('Validation Error', 'Please enter a headline');
+      return;
+    }
+    if (!linkUrl.trim()) {
+      if (Platform.OS === 'web') alert('Please enter a URL');
+      else Alert.alert('Validation Error', 'Please enter a URL');
+      return;
+    }
+
+    await addLink(selectedMapId, selectedOperatorId, linkHeadline, linkUrl);
+    setLinkHeadline('');
+    setLinkUrl('');
+    setIsModalOpen(false);
+  };
+
+  const handleDeleteLink = (linkId: string) => {
+    if (!selectedMapId || !selectedOperatorId) return;
+
+    if (Platform.OS === 'web') {
+      if (window.confirm('Are you sure you want to delete this clip?')) {
+        deleteLink(selectedMapId, selectedOperatorId, linkId);
+      }
+    } else {
+      Alert.alert(
+        'Delete Clip',
+        'Are you sure you want to delete this clip?',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Delete', style: 'destructive', onPress: () => deleteLink(selectedMapId!, selectedOperatorId!, linkId) },
+        ]
+      );
+    }
+  };
+
+  const resetSelection = () => {
+    setSelectedMapId(null);
+    setSelectedOperatorId(null);
+    setMobileStep(0);
+  };
+
+  // ---------------- RENDERS ----------------
+
+  // Render Map Card Item
+  const renderMapItem = (mapItem: typeof maps[0]) => {
+    const isSelected = selectedMapId === mapItem.id;
+    const mapImage = MapImages[mapItem.id];
+    return (
+      <Pressable
+        key={mapItem.id}
+        style={({ pressed }) => [
+          styles.mapCard,
+          {
+            backgroundColor: theme.backgroundElement,
+            borderColor: isSelected ? theme.primary : theme.border,
+            transform: [{ scale: pressed ? 0.98 : 1 }],
+          },
+        ]}
+        onPress={() => {
+          setSelectedMapId(mapItem.id);
+          setSelectedOperatorId(null); // Reset operator when map changes
+          if (!isDesktop) {
+            setMobileStep(1);
+          }
+        }}
+      >
+        {mapImage && (
+          <>
+            <Image source={mapImage} style={StyleSheet.absoluteFillObject} contentFit="cover" />
+            <View style={[StyleSheet.absoluteFillObject, { backgroundColor: 'rgba(0, 0, 0, 0.65)' }]} />
+          </>
+        )}
+        <View style={styles.mapCardContent}>
+          <View style={styles.mapHeaderRow}>
+            <TacticalIcon name="map" color={isSelected ? theme.primary : '#fff'} size={18} />
+            <Text style={[styles.mapName, { color: '#fff' }]}>{mapItem.name}</Text>
+          </View>
+        </View>
+        {isSelected && (
+          <View style={[styles.activeIndicator, { backgroundColor: theme.primary }]} />
+        )}
+      </Pressable>
+    );
+  };
+
+  // Render Operator Tile Item
+  const renderOperatorItem = (opItem: typeof operators[0]) => {
+    const isSelected = selectedOperatorId === opItem.id;
+    const isAttacker = opItem.role === 'attacker';
+    const roleColor = isAttacker ? theme.attacker : theme.defender;
+    const opImage = OperatorImages[opItem.id];
+
+    return (
+      <Pressable
+        key={opItem.id}
+        style={({ pressed }) => [
+          styles.opTile,
+          {
+            backgroundColor: theme.backgroundElement,
+            borderColor: isSelected ? theme.primary : theme.border,
+            transform: [{ scale: pressed ? 0.96 : 1 }],
+          },
+        ]}
+        onPress={() => {
+          setSelectedOperatorId(opItem.id);
+          if (!isDesktop) {
+            setMobileStep(2);
+          }
+        }}
+      >
+        <View style={[styles.opRoleBar, { backgroundColor: roleColor }]} />
+        {opImage && (
+          <Image source={opImage} style={styles.opAvatar} contentFit="contain" />
+        )}
+        <Text style={[styles.opName, { color: theme.text }]}>{opItem.name}</Text>
+        <Text style={[styles.opRoleText, { color: roleColor }]}>
+          {opItem.role.toUpperCase()}
+        </Text>
+        {isSelected && (
+          <View style={[styles.opCheckIcon, { backgroundColor: theme.primary }]}>
+            <TacticalIcon name="play" color="#000" size={10} />
+          </View>
+        )}
+      </Pressable>
+    );
+  };
+
+  // Render Video Link Card Item
+  const renderVideoItem = (video: VideoLink) => {
+    const badge = getPlatformBadge(video.url);
+    return (
+      <View
+        key={video.id}
+        style={[
+          styles.videoCard,
+          {
+            backgroundColor: theme.backgroundElement,
+            borderColor: theme.border,
+          },
+        ]}
+      >
+        <View style={styles.videoInfo}>
+          <View style={styles.badgeRow}>
+            <View style={[styles.platformBadge, { backgroundColor: badge.color }]}>
+              <Text style={styles.platformBadgeText}>{badge.name}</Text>
+            </View>
+            <Text style={[styles.addedAtText, { color: theme.textSecondary }]}>
+              {new Date(video.addedAt).toLocaleDateString()}
+            </Text>
+          </View>
+          <Text style={[styles.videoHeadline, { color: theme.text }]} numberOfLines={2}>
+            {video.headline}
+          </Text>
+          <Text style={[styles.videoUrlText, { color: theme.textSecondary }]} numberOfLines={1}>
+            {video.url}
+          </Text>
+        </View>
+
+        <View style={styles.videoActions}>
+          <Pressable
+            style={({ pressed }) => [
+              styles.watchButton,
+              {
+                backgroundColor: theme.primary,
+                opacity: pressed ? 0.8 : 1,
+              },
+            ]}
+            onPress={() => handleOpenLink(video.url)}
+          >
+            <TacticalIcon name="play" color="#000" size={12} />
+            <Text style={styles.watchButtonText}>WATCH</Text>
+          </Pressable>
+
+          <Pressable
+            style={({ pressed }) => [
+              styles.deleteButton,
+              {
+                backgroundColor: 'rgba(255, 77, 77, 0.1)',
+                borderColor: theme.danger,
+                opacity: pressed ? 0.7 : 1,
+              },
+            ]}
+            onPress={() => handleDeleteLink(video.id)}
+          >
+            <TacticalIcon name="trash" color={theme.danger} size={14} />
+          </Pressable>
+        </View>
+      </View>
+    );
+  };
+
+  // ---------------- WIDESCREEN / DESKTOP VIEW ----------------
+  const renderDesktopLayout = () => {
+    return (
+      <View style={styles.desktopContainer}>
+        {/* Col 1: Maps List */}
+        <View style={[styles.desktopColumn, { flex: 1.1, borderRightWidth: 1, borderColor: theme.border }]}>
+          <View style={styles.columnHeader}>
+            <Text style={[styles.columnTitle, { color: theme.text }]}>TACTICAL MAPS</Text>
+            <Text style={[styles.columnSubtitle, { color: theme.textSecondary }]}>
+              Select target operations area
+            </Text>
+          </View>
+          
+          <View style={styles.searchWrapper}>
+            <TacticalIcon name="search" color={theme.textSecondary} size={16} />
+            <TextInput
+              style={[styles.searchInput, { color: theme.text, backgroundColor: theme.background }]}
+              placeholder="Search maps..."
+              placeholderTextColor={theme.textSecondary}
+              value={mapSearch}
+              onChangeText={setMapSearch}
+            />
+            {mapSearch.length > 0 && (
+              <Pressable onPress={() => setMapSearch('')}>
+                <TacticalIcon name="close" color={theme.textSecondary} size={14} />
+              </Pressable>
+            )}
+          </View>
+
+          <ScrollView contentContainerStyle={styles.scrollList} showsVerticalScrollIndicator={false}>
+            {filteredMaps.map(renderMapItem)}
+            {filteredMaps.length === 0 && (
+              <Text style={[styles.emptyText, { color: theme.textSecondary }]}>No maps found</Text>
+            )}
+          </ScrollView>
+        </View>
+
+        {/* Col 2: Operator Grid */}
+        <View style={[styles.desktopColumn, { flex: 1.5, borderRightWidth: 1, borderColor: theme.border }]}>
+          <View style={styles.columnHeader}>
+            <Text style={[styles.columnTitle, { color: theme.text }]}>OPERATOR ROSTER</Text>
+            <Text style={[styles.columnSubtitle, { color: theme.textSecondary }]}>
+              {selectedMap ? `Targeting: ${selectedMap.name}` : 'Select a map first'}
+            </Text>
+          </View>
+
+          {!selectedMapId ? (
+            <View style={styles.columnPlaceholder}>
+              <TacticalIcon name="lock" color={theme.textSecondary} size={36} />
+              <Text style={[styles.placeholderTitle, { color: theme.text }]}>Map Unselected</Text>
+              <Text style={[styles.placeholderBody, { color: theme.textSecondary }]}>
+                Select a tactical map from the left panel to unlock the operator roster.
+              </Text>
+            </View>
+          ) : (
+            <>
+              {/* Operator filters */}
+              <View style={styles.filterBar}>
+                <View style={styles.roleFilterContainer}>
+                  {(['all', 'attacker', 'defender'] as const).map((role) => (
+                    <Pressable
+                      key={role}
+                      style={[
+                        styles.filterTab,
+                        opRoleFilter === role && {
+                          backgroundColor: theme.primary,
+                        },
+                      ]}
+                      onPress={() => setOpRoleFilter(role)}
+                    >
+                      <Text
+                        style={[
+                          styles.filterTabText,
+                          { color: opRoleFilter === role ? '#000' : theme.text },
+                        ]}
+                      >
+                        {role.toUpperCase()}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </View>
+
+                <View style={[styles.searchWrapper, { flex: 1, marginLeft: Spacing.two }]}>
+                  <TextInput
+                    style={[styles.searchInput, { color: theme.text, backgroundColor: theme.background }]}
+                    placeholder="Search op..."
+                    placeholderTextColor={theme.textSecondary}
+                    value={opSearch}
+                    onChangeText={setOpSearch}
+                  />
+                </View>
+              </View>
+
+              <ScrollView contentContainerStyle={styles.opGrid} showsVerticalScrollIndicator={false}>
+                {filteredOperators.map(renderOperatorItem)}
+                {filteredOperators.length === 0 && (
+                  <Text style={[styles.emptyText, { color: theme.textSecondary }]}>No operators found</Text>
+                )}
+              </ScrollView>
+            </>
+          )}
+        </View>
+
+        {/* Col 3: Video Links */}
+        <View style={[styles.desktopColumn, { flex: 1.8 }]}>
+          <View style={styles.columnHeader}>
+            <Text style={[styles.columnTitle, { color: theme.text }]}>TACTICAL INTEL</Text>
+            <Text style={[styles.columnSubtitle, { color: theme.textSecondary }]}>
+              {selectedOperator ? `Tactics for ${selectedOperator.name}` : 'Select an operator'}
+            </Text>
+          </View>
+
+          {!selectedMapId || !selectedOperatorId ? (
+            <View style={styles.columnPlaceholder}>
+              <TacticalIcon name="person" color={theme.textSecondary} size={36} />
+              <Text style={[styles.placeholderTitle, { color: theme.text }]}>Operator Details</Text>
+              <Text style={[styles.placeholderBody, { color: theme.textSecondary }]}>
+                Choose a map and an operator to load the strategy database and video guides.
+              </Text>
+            </View>
+          ) : (
+            <View style={styles.videosContainer}>
+              <View style={[styles.dossierBanner, { borderColor: theme.border }]}>
+                {mapImage && (
+                  <>
+                    <Image source={mapImage} style={StyleSheet.absoluteFillObject} contentFit="cover" />
+                    <View style={[StyleSheet.absoluteFillObject, { backgroundColor: 'rgba(11, 12, 16, 0.8)' }]} />
+                  </>
+                )}
+                <View style={styles.dossierContent}>
+                  {opImage && (
+                    <Image source={opImage} style={styles.dossierOpAvatar} contentFit="contain" />
+                  )}
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.dossierTitle}>
+                      {selectedOperator.name} on {selectedMap.name}
+                    </Text>
+                    <Text style={[styles.dossierSubtitle, { color: theme.primary }]}>
+                      ACTIVE TACTICAL DOSSIER • {currentVideos.length} CLIP(S)
+                    </Text>
+                  </View>
+                </View>
+              </View>
+
+              <View style={styles.videosHeader}>
+                <Text style={[styles.intelSubHeading, { color: theme.textSecondary }]}>
+                  Strategic Intelligence Links
+                </Text>
+                <Pressable
+                  style={({ pressed }) => [
+                    styles.addFloatingBtn,
+                    { backgroundColor: theme.primary, opacity: pressed ? 0.9 : 1 },
+                  ]}
+                  onPress={() => setIsModalOpen(true)}
+                >
+                  <TacticalIcon name="plus" color="#000" size={12} />
+                  <Text style={styles.addBtnLabel}>ADD CLIP</Text>
+                </Pressable>
+              </View>
+
+              <ScrollView contentContainerStyle={styles.videosScroll} showsVerticalScrollIndicator={false}>
+                {currentVideos.map(renderVideoItem)}
+                {currentVideos.length === 0 && (
+                  <View style={[styles.blueprintCard, { borderColor: theme.border }]}>
+                    <Text style={[styles.blueprintTitle, { color: theme.primary }]}>
+                      NO STRAT DATA FOUND
+                    </Text>
+                    <Text style={[styles.blueprintBody, { color: theme.textSecondary }]}>
+                      Establish communications. Click {"\"ADD CLIP\""} to upload setups, spawnpeeks, or angles for {selectedOperator.name} on {selectedMap.name}.
+                    </Text>
+                  </View>
+                )}
+              </ScrollView>
+            </View>
+          )}
+        </View>
+      </View>
+    );
+  };
+
+  // ---------------- MOBILE / PHONE VIEW ----------------
+  const renderMobileLayout = () => {
+    return (
+      <View style={styles.mobileContainer}>
+        {/* Step 1: Maps Selection */}
+        {mobileStep === 0 && (
+          <View style={styles.mobilePanel}>
+            <View style={styles.mobileHeader}>
+              <Text style={[styles.mobileTitle, { color: theme.text }]}>TACTICAL MAPS</Text>
+              <Text style={[styles.mobileSubtitle, { color: theme.textSecondary }]}>Select mission operations area</Text>
+            </View>
+
+            <View style={[styles.searchWrapper, { marginHorizontal: Spacing.three, marginBottom: Spacing.two }]}>
+              <TacticalIcon name="search" color={theme.textSecondary} size={16} />
+              <TextInput
+                style={[styles.searchInput, { color: theme.text, backgroundColor: theme.background }]}
+                placeholder="Search maps..."
+                placeholderTextColor={theme.textSecondary}
+                value={mapSearch}
+                onChangeText={setMapSearch}
+              />
+              {mapSearch.length > 0 && (
+                <Pressable onPress={() => setMapSearch('')}>
+                  <TacticalIcon name="close" color={theme.textSecondary} size={14} />
+                </Pressable>
+              )}
+            </View>
+
+            <ScrollView contentContainerStyle={styles.mobileScrollContent}>
+              {filteredMaps.map(renderMapItem)}
+              {filteredMaps.length === 0 && (
+                <Text style={[styles.emptyText, { color: theme.textSecondary }]}>No maps found</Text>
+              )}
+            </ScrollView>
+          </View>
+        )}
+
+        {/* Step 2: Operator Selection */}
+        {mobileStep === 1 && selectedMap && (
+          <View style={styles.mobilePanel}>
+            {/* Breadcrumb / Top control */}
+            <View style={[styles.breadcrumbRow, { borderBottomWidth: 1, borderColor: theme.border }]}>
+              <Pressable style={styles.backBtn} onPress={() => setMobileStep(0)}>
+                <TacticalIcon name="back" color={theme.primary} size={16} />
+                <Text style={[styles.backBtnText, { color: theme.primary }]}>MAPS</Text>
+              </Pressable>
+              <Text style={[styles.breadcrumbText, { color: theme.textSecondary }]}>
+                🗺️ {selectedMap.name}
+              </Text>
+            </View>
+
+            <View style={styles.mobileHeader}>
+              <Text style={[styles.mobileTitle, { color: theme.text }]}>SELECT OPERATOR</Text>
+              <Text style={[styles.mobileSubtitle, { color: theme.textSecondary }]}>Choose matching tactical agent</Text>
+            </View>
+
+            {/* Operator Filters */}
+            <View style={[styles.filterBar, { marginHorizontal: Spacing.three, marginBottom: Spacing.two }]}>
+              <View style={styles.roleFilterContainer}>
+                {(['all', 'attacker', 'defender'] as const).map((role) => (
+                  <Pressable
+                    key={role}
+                    style={[
+                      styles.filterTab,
+                      opRoleFilter === role && {
+                        backgroundColor: theme.primary,
+                      },
+                    ]}
+                    onPress={() => setOpRoleFilter(role)}
+                  >
+                    <Text
+                      style={[
+                        styles.filterTabText,
+                        { color: opRoleFilter === role ? '#000' : theme.text, fontSize: 11 },
+                      ]}
+                    >
+                      {role.toUpperCase()}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+
+              <View style={[styles.searchWrapper, { flex: 1, marginLeft: Spacing.two }]}>
+                <TextInput
+                  style={[styles.searchInput, { color: theme.text, backgroundColor: theme.background }]}
+                  placeholder="Search op..."
+                  placeholderTextColor={theme.textSecondary}
+                  value={opSearch}
+                  onChangeText={setOpSearch}
+                />
+              </View>
+            </View>
+
+            <ScrollView contentContainerStyle={styles.mobileOpGridContent}>
+              {filteredOperators.map(renderOperatorItem)}
+              {filteredOperators.length === 0 && (
+                <Text style={[styles.emptyText, { color: theme.textSecondary }]}>No agents found</Text>
+              )}
+            </ScrollView>
+          </View>
+        )}
+
+        {/* Step 3: Video Clips */}
+        {mobileStep === 2 && selectedMap && selectedOperator && (
+          <View style={styles.mobilePanel}>
+            {/* Breadcrumb / Top control */}
+            <View style={[styles.breadcrumbRow, { borderBottomWidth: 1, borderColor: theme.border }]}>
+              <Pressable style={styles.backBtn} onPress={() => setMobileStep(1)}>
+                <TacticalIcon name="back" color={theme.primary} size={16} />
+                <Text style={[styles.backBtnText, { color: theme.primary }]}>AGENTS</Text>
+              </Pressable>
+              <Text style={[styles.breadcrumbText, { color: theme.textSecondary }]} numberOfLines={1}>
+                🗺️ {selectedMap.name} &gt; 🥷 {selectedOperator.name}
+              </Text>
+            </View>
+
+            <View style={styles.videosContainer}>
+              <View style={[styles.dossierBanner, { borderColor: theme.border, marginHorizontal: Spacing.three }]}>
+                {mapImage && (
+                  <>
+                    <Image source={mapImage} style={StyleSheet.absoluteFillObject} contentFit="cover" />
+                    <View style={[StyleSheet.absoluteFillObject, { backgroundColor: 'rgba(11, 12, 16, 0.8)' }]} />
+                  </>
+                )}
+                <View style={styles.dossierContent}>
+                  {opImage && (
+                    <Image source={opImage} style={styles.dossierOpAvatar} contentFit="contain" />
+                  )}
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.dossierTitle}>
+                      {selectedOperator.name}
+                    </Text>
+                    <Text style={[styles.dossierSubtitle, { color: theme.primary }]}>
+                      ACTIVE DOSSIER • {currentVideos.length} CLIP(S)
+                    </Text>
+                  </View>
+                </View>
+              </View>
+
+              <View style={styles.videosHeader}>
+                <Text style={[styles.intelSubHeading, { color: theme.textSecondary }]}>
+                  Strategic Intelligence Links
+                </Text>
+                <Pressable
+                  style={({ pressed }) => [
+                    styles.addFloatingBtnMobile,
+                    { backgroundColor: theme.primary, opacity: pressed ? 0.9 : 1 },
+                  ]}
+                  onPress={() => setIsModalOpen(true)}
+                >
+                  <TacticalIcon name="plus" color="#000" size={16} />
+                </Pressable>
+              </View>
+
+              <ScrollView
+                contentContainerStyle={[styles.mobileVideosScroll, { paddingBottom: BottomTabInset + 40 }]}
+                showsVerticalScrollIndicator={false}
+              >
+                {currentVideos.map(renderVideoItem)}
+                {currentVideos.length === 0 && (
+                  <View style={[styles.blueprintCard, { borderColor: theme.border }]}>
+                    <Text style={[styles.blueprintTitle, { color: theme.primary }]}>
+                      INTEL RECON EMPTY
+                    </Text>
+                    <Text style={[styles.blueprintBody, { color: theme.textSecondary }]}>
+                      Tap the {"\"+\""} button to register setup guides, camera spots, or gadget angles for {selectedOperator.name} on {selectedMap.name}.
+                    </Text>
+                  </View>
+                )}
+              </ScrollView>
+            </View>
+          </View>
+        )}
+      </View>
+    );
+  };
+
   return (
-    <ThemedView style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <ThemedView style={styles.heroSection}>
-          <AnimatedIcon />
-          <ThemedText type="title" style={styles.title}>
-            Welcome to&nbsp;Expo
-          </ThemedText>
-        </ThemedView>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]} edges={['top', 'left', 'right']}>
+      {/* Top Banner App Title */}
+      <ThemedView type="backgroundElement" style={styles.topHeader}>
+        <View style={styles.headerInfo}>
+          <Text style={[styles.brandTitle, { color: theme.text }]}>
+            R6 <Text style={{ color: theme.primary }}>COMPANION</Text>
+          </Text>
+          <Text style={[styles.brandTagline, { color: theme.textSecondary }]}>
+            Tactical Utility & Strategic Dossier Database
+          </Text>
+        </View>
 
-        <ThemedText type="code" style={styles.code}>
-          get started
-        </ThemedText>
+        {/* Global Reset */}
+        {(selectedMapId || selectedOperatorId) && (
+          <Pressable
+            style={({ pressed }) => [
+              styles.resetBtn,
+              { borderColor: theme.primary, opacity: pressed ? 0.7 : 1 },
+            ]}
+            onPress={resetSelection}
+          >
+            <Text style={[styles.resetBtnText, { color: theme.primary }]}>RESET</Text>
+          </Pressable>
+        )}
+      </ThemedView>
 
-        <ThemedView type="backgroundElement" style={styles.stepContainer}>
-          <HintRow
-            title="Try editing"
-            hint={<ThemedText type="code">src/app/index.tsx</ThemedText>}
-          />
-          <HintRow title="Dev tools" hint={getDevMenuHint()} />
-          <HintRow
-            title="Fresh start"
-            hint={<ThemedText type="code">npm run reset-project</ThemedText>}
-          />
-        </ThemedView>
+      {/* Main Grid View */}
+      {isDesktop ? renderDesktopLayout() : renderMobileLayout()}
 
-        {Platform.OS === 'web' && <WebBadge />}
-      </SafeAreaView>
-    </ThemedView>
+      {/* ADD TACTICAL CLIP MODAL */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={isModalOpen}
+        onRequestClose={() => setIsModalOpen(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <ThemedView type="backgroundElement" style={[styles.modalCard, { borderColor: theme.border }]}>
+            <View style={styles.modalHeader}>
+              <View>
+                <Text style={[styles.modalTitle, { color: theme.text }]}>ADD STRAT intel</Text>
+                {selectedOperator && selectedMap && (
+                  <Text style={[styles.modalSubtitle, { color: theme.primary }]}>
+                    Target: {selectedOperator.name} @ {selectedMap.name}
+                  </Text>
+                )}
+              </View>
+              <Pressable
+                style={({ pressed }) => [styles.modalCloseBtn, pressed && { opacity: 0.7 }]}
+                onPress={() => {
+                  setLinkHeadline('');
+                  setLinkUrl('');
+                  setIsModalOpen(false);
+                }}
+              >
+                <TacticalIcon name="close" color={theme.text} size={16} />
+              </Pressable>
+            </View>
+
+            <View style={styles.modalForm}>
+              <View style={styles.inputGroup}>
+                <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>
+                  CLIP HEADLINE / TITLE
+                </Text>
+                <TextInput
+                  style={[styles.modalInput, { color: theme.text, borderColor: theme.border, backgroundColor: theme.background }]}
+                  placeholder="e.g. Clubhouse Attic Cam Spot"
+                  placeholderTextColor={theme.textSecondary}
+                  value={linkHeadline}
+                  onChangeText={setLinkHeadline}
+                />
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>
+                  VIDEO URL (YOUTUBE, TIKTOK, TWITCH, ETC.)
+                </Text>
+                <TextInput
+                  style={[styles.modalInput, { color: theme.text, borderColor: theme.border, backgroundColor: theme.background }]}
+                  placeholder="https://www.youtube.com/watch?v=..."
+                  placeholderTextColor={theme.textSecondary}
+                  value={linkUrl}
+                  onChangeText={setLinkUrl}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  keyboardType="url"
+                />
+              </View>
+
+              <Pressable
+                style={({ pressed }) => [
+                  styles.submitBtn,
+                  { backgroundColor: theme.primary, opacity: pressed ? 0.9 : 1 },
+                ]}
+                onPress={handleAddLink}
+              >
+                <Text style={styles.submitBtnText}>CONFIRM CLIP DATA</Text>
+              </Pressable>
+            </View>
+          </ThemedView>
+        </View>
+      </Modal>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    flexDirection: 'row',
-  },
   safeArea: {
     flex: 1,
-    paddingHorizontal: Spacing.four,
-    alignItems: 'center',
-    gap: Spacing.three,
-    paddingBottom: BottomTabInset + Spacing.three,
-    maxWidth: MaxContentWidth,
   },
-  heroSection: {
+  topHeader: {
+    paddingHorizontal: Spacing.four,
+    paddingVertical: Spacing.three,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderBottomWidth: 1,
+    borderColor: 'rgba(255,255,255,0.05)',
+  },
+  headerInfo: {
+    flex: 1,
+  },
+  brandTitle: {
+    fontSize: 20,
+    fontWeight: '900',
+    letterSpacing: 1.5,
+  },
+  brandTagline: {
+    fontSize: 11,
+    marginTop: 2,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  resetBtn: {
+    borderWidth: 1,
+    paddingVertical: Spacing.one,
+    paddingHorizontal: Spacing.three,
+    borderRadius: 4,
+  },
+  resetBtnText: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 1,
+  },
+  
+  // Desktop columns styling
+  desktopContainer: {
+    flex: 1,
+    flexDirection: 'row',
+  },
+  desktopColumn: {
+    height: '100%',
+    paddingVertical: Spacing.three,
+  },
+  columnHeader: {
+    paddingHorizontal: Spacing.three,
+    marginBottom: Spacing.three,
+  },
+  columnTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    letterSpacing: 1,
+  },
+  columnSubtitle: {
+    fontSize: 12,
+    marginTop: 2,
+  },
+  searchWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#303030',
+    borderRadius: 6,
+    paddingHorizontal: Spacing.two,
+    paddingVertical: Platform.OS === 'ios' ? 8 : 6,
+    marginHorizontal: Spacing.three,
+    marginBottom: Spacing.three,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 13,
+    paddingLeft: Spacing.two,
+    height: 32,
+  },
+  scrollList: {
+    paddingHorizontal: Spacing.three,
+    gap: Spacing.two,
+  },
+  mapCard: {
+    height: 80,
+    borderWidth: 1,
+    borderRadius: 6,
+    justifyContent: 'center',
+    paddingHorizontal: Spacing.three,
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  mapCardContent: {
+    gap: Spacing.one,
+    zIndex: 1,
+  },
+  mapHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.two,
+  },
+  mapName: {
+    fontSize: 14,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+    textShadowColor: 'rgba(0,0,0,0.8)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
+  },
+  activeIndicator: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: 4,
+  },
+
+  // Operator selection panel
+  columnPlaceholder: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    gap: Spacing.four,
+    padding: Spacing.four,
+    opacity: 0.6,
   },
-  title: {
+  placeholderTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    marginTop: Spacing.three,
+    marginBottom: Spacing.one,
+  },
+  placeholderBody: {
+    fontSize: 12,
+    textAlign: 'center',
+    lineHeight: 18,
+  },
+  filterBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: Spacing.three,
+    marginBottom: Spacing.three,
+    gap: Spacing.two,
+  },
+  roleFilterContainer: {
+    flexDirection: 'row',
+    borderRadius: 6,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#303030',
+  },
+  filterTab: {
+    paddingVertical: Spacing.two,
+    paddingHorizontal: Spacing.three,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  filterTabText: {
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+  },
+  opGrid: {
+    paddingHorizontal: Spacing.three,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.two,
+    paddingBottom: Spacing.five,
+  },
+  opTile: {
+    width: '48%', // dynamic flexbox sizing
+    borderWidth: 1,
+    borderRadius: 6,
+    padding: Spacing.two,
+    alignItems: 'center',
+    position: 'relative',
+    overflow: 'hidden',
+    justifyContent: 'center',
+    paddingVertical: Spacing.three,
+  },
+  opRoleBar: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 4,
+  },
+  opAvatar: {
+    width: 44,
+    height: 44,
+    borderRadius: 6,
+    marginBottom: Spacing.two,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+  },
+  opName: {
+    fontSize: 13,
+    fontWeight: '800',
+    letterSpacing: 0.5,
     textAlign: 'center',
   },
-  code: {
+  opRoleText: {
+    fontSize: 8,
+    fontWeight: '800',
+    marginTop: Spacing.one,
+    letterSpacing: 0.5,
+  },
+  opCheckIcon: {
+    position: 'absolute',
+    bottom: 4,
+    right: 4,
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  // Videos links panel
+  videosContainer: {
+    flex: 1,
+  },
+  dossierBanner: {
+    height: 110,
+    borderRadius: 8,
+    borderWidth: 1,
+    overflow: 'hidden',
+    marginBottom: Spacing.three,
+    justifyContent: 'center',
+    paddingHorizontal: Spacing.four,
+    position: 'relative',
+  },
+  dossierContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.three,
+    zIndex: 1,
+  },
+  dossierOpAvatar: {
+    width: 64,
+    height: 64,
+    borderRadius: 6,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+  },
+  dossierTitle: {
+    fontSize: 18,
+    fontWeight: '900',
+    color: '#ffffff',
+    letterSpacing: 0.5,
+    textShadowColor: 'rgba(0,0,0,0.9)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
+  },
+  dossierSubtitle: {
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 1,
+    marginTop: 2,
+    textShadowColor: 'rgba(0,0,0,0.9)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+  },
+  videosHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.three,
+    marginBottom: Spacing.three,
+    gap: Spacing.two,
+  },
+  intelMainHeading: {
+    fontSize: 15,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+  },
+  intelSubHeading: {
+    fontSize: 11,
+    marginTop: 2,
+    fontWeight: '600',
+  },
+  addFloatingBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: Spacing.three,
+    borderRadius: 4,
+    gap: Spacing.one,
+  },
+  addBtnLabel: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#000',
+  },
+  videosScroll: {
+    paddingHorizontal: Spacing.three,
+    gap: Spacing.three,
+    paddingBottom: Spacing.six,
+  },
+  videoCard: {
+    borderWidth: 1,
+    borderRadius: 6,
+    padding: Spacing.three,
+    gap: Spacing.three,
+  },
+  videoInfo: {
+    gap: Spacing.one,
+  },
+  badgeRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  platformBadge: {
+    paddingHorizontal: Spacing.two,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  platformBadgeText: {
+    fontSize: 9,
+    fontWeight: '800',
+    color: '#fff',
+  },
+  addedAtText: {
+    fontSize: 10,
+    fontWeight: '500',
+  },
+  videoHeadline: {
+    fontSize: 14,
+    fontWeight: '700',
+    lineHeight: 18,
+  },
+  videoUrlText: {
+    fontSize: 11,
+  },
+  videoActions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: Spacing.two,
+  },
+  watchButton: {
+    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 8,
+    borderRadius: 4,
+    gap: Spacing.one,
+  },
+  watchButtonText: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#000',
+  },
+  deleteButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 4,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  blueprintCard: {
+    borderWidth: 1.5,
+    borderStyle: 'dashed',
+    borderRadius: 6,
+    padding: Spacing.four,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: Spacing.two,
+  },
+  blueprintTitle: {
+    fontSize: 13,
+    fontWeight: '800',
+    letterSpacing: 1,
+    marginBottom: Spacing.one,
+  },
+  blueprintBody: {
+    fontSize: 12,
+    textAlign: 'center',
+    lineHeight: 18,
+  },
+
+  // Mobile Styles
+  mobileContainer: {
+    flex: 1,
+  },
+  mobilePanel: {
+    flex: 1,
+  },
+  mobileHeader: {
+    paddingHorizontal: Spacing.three,
+    paddingVertical: Spacing.two,
+    marginBottom: Spacing.one,
+  },
+  mobileTitle: {
+    fontSize: 16,
+    fontWeight: '950',
+    letterSpacing: 0.5,
+  },
+  mobileSubtitle: {
+    fontSize: 12,
+    marginTop: 2,
+  },
+  mobileScrollContent: {
+    paddingHorizontal: Spacing.three,
+    gap: Spacing.two,
+    paddingBottom: BottomTabInset + 40,
+  },
+  breadcrumbRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: Spacing.two,
+    paddingHorizontal: Spacing.three,
+    gap: Spacing.two,
+  },
+  backBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingRight: Spacing.two,
+  },
+  backBtnText: {
+    fontSize: 11,
+    fontWeight: '800',
+  },
+  breadcrumbText: {
+    fontSize: 12,
+    fontWeight: '600',
+    flex: 1,
+  },
+  mobileOpGridContent: {
+    paddingHorizontal: Spacing.three,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.two,
+    paddingBottom: BottomTabInset + 40,
+  },
+  addFloatingBtnMobile: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  mobileVideosScroll: {
+    paddingHorizontal: Spacing.three,
+    gap: Spacing.three,
+  },
+
+  // Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.85)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: Spacing.four,
+  },
+  modalCard: {
+    width: '100%',
+    maxWidth: 450,
+    borderRadius: 8,
+    borderWidth: 1,
+    overflow: 'hidden',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    padding: Spacing.three,
+    borderBottomWidth: 1,
+    borderColor: 'rgba(255,255,255,0.05)',
+  },
+  modalTitle: {
+    fontSize: 16,
+    fontWeight: '900',
+    letterSpacing: 1,
     textTransform: 'uppercase',
   },
-  stepContainer: {
+  modalSubtitle: {
+    fontSize: 12,
+    fontWeight: '700',
+    marginTop: 2,
+  },
+  modalCloseBtn: {
+    padding: Spacing.one,
+  },
+  modalForm: {
+    padding: Spacing.three,
     gap: Spacing.three,
-    alignSelf: 'stretch',
+  },
+  inputGroup: {
+    gap: Spacing.one,
+  },
+  inputLabel: {
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+  },
+  modalInput: {
+    borderWidth: 1,
+    borderRadius: 6,
     paddingHorizontal: Spacing.three,
+    paddingVertical: Platform.OS === 'ios' ? 10 : 8,
+    fontSize: 13,
+  },
+  submitBtn: {
+    paddingVertical: 12,
+    borderRadius: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: Spacing.two,
+  },
+  submitBtnText: {
+    color: '#000',
+    fontSize: 12,
+    fontWeight: '900',
+    letterSpacing: 1,
+  },
+  emptyText: {
+    fontSize: 13,
+    textAlign: 'center',
     paddingVertical: Spacing.four,
-    borderRadius: Spacing.four,
   },
 });
