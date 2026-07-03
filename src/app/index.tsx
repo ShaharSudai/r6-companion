@@ -351,7 +351,7 @@ export default function CompanionScreen() {
       >
         {mapImage && (
           <>
-            <Image source={mapImage} style={StyleSheet.absoluteFillObject} contentFit="cover" />
+            <Image source={mapImage} style={[StyleSheet.absoluteFillObject, { width: '100%', height: '100%' }]} contentFit="cover" />
             <View style={[StyleSheet.absoluteFillObject, { backgroundColor: 'rgba(0, 0, 0, 0.65)' }]} />
           </>
         )}
@@ -599,7 +599,7 @@ export default function CompanionScreen() {
               <View style={[styles.dossierBanner, { borderColor: theme.border }]}>
                 {mapImage && (
                   <>
-                    <Image source={mapImage} style={StyleSheet.absoluteFillObject} contentFit="cover" />
+                    <Image source={mapImage} style={[StyleSheet.absoluteFillObject, { width: '100%', height: '100%' }]} contentFit="cover" />
                     <View style={[StyleSheet.absoluteFillObject, { backgroundColor: 'rgba(11, 12, 16, 0.8)' }]} />
                   </>
                 )}
@@ -783,7 +783,7 @@ export default function CompanionScreen() {
               <View style={[styles.dossierBanner, { borderColor: theme.border, marginHorizontal: Spacing.three }]}>
                 {mapImage && (
                   <>
-                    <Image source={mapImage} style={StyleSheet.absoluteFillObject} contentFit="cover" />
+                    <Image source={mapImage} style={[StyleSheet.absoluteFillObject, { width: '100%', height: '100%' }]} contentFit="cover" />
                     <View style={[StyleSheet.absoluteFillObject, { backgroundColor: 'rgba(11, 12, 16, 0.8)' }]} />
                   </>
                 )}
