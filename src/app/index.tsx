@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   StyleSheet,
   View,
@@ -216,7 +216,7 @@ const MapCard = React.memo(({
 }: {
   item: typeof maps[0];
   isSelected: boolean;
-  onPress: () => void;
+  onPress: (id: string) => void;
   theme: any;
 }) => {
   const mapImage = MapImages[item.id];
@@ -230,7 +230,7 @@ const MapCard = React.memo(({
           transform: [{ scale: pressed ? 0.98 : 1 }],
         },
       ]}
-      onPress={onPress}
+      onPress={() => onPress(item.id)}
     >
       {mapImage && (
         <View style={StyleSheet.absoluteFillObject}>
@@ -266,7 +266,7 @@ const OperatorTile = React.memo(({
 }: {
   item: typeof operators[0];
   isSelected: boolean;
-  onPress: () => void;
+  onPress: (id: string) => void;
   theme: any;
 }) => {
   const isAttacker = item.role === 'attacker';
@@ -283,7 +283,7 @@ const OperatorTile = React.memo(({
           transform: [{ scale: pressed ? 0.96 : 1 }],
         },
       ]}
-      onPress={onPress}
+      onPress={() => onPress(item.id)}
     >
       <View style={[styles.opRoleBar, { backgroundColor: roleColor }]} />
       {opImage && (
@@ -420,48 +420,52 @@ export default function CompanionScreen() {
     }
   };
 
-  const resetSelection = () => {
+  const handleSelectMap = useCallback((mapId: string) => {
+    setSelectedMapId(mapId);
+    setSelectedOperatorId(null);
+    if (!isDesktop) {
+      setMobileStep(1);
+    }
+  }, [isDesktop, setSelectedMapId, setSelectedOperatorId, setMobileStep]);
+
+  const handleSelectOperator = useCallback((opId: string) => {
+    setSelectedOperatorId(opId);
+    if (!isDesktop) {
+      setMobileStep(2);
+    }
+  }, [isDesktop, setSelectedOperatorId, setMobileStep]);
+
+  const resetSelection = useCallback(() => {
     setSelectedMapId(null);
     setSelectedOperatorId(null);
     setMobileStep(0);
-  };
+  }, [setSelectedMapId, setSelectedOperatorId, setMobileStep]);
 
   // ---------------- RENDERS ----------------
 
   // Render Map Card Item
-  const renderMapItem = (mapItem: typeof maps[0]) => {
+  const renderMapItem = useCallback(({ item }: { item: typeof maps[0] }) => {
     return (
       <MapCard
-        item={mapItem}
-        isSelected={selectedMapId === mapItem.id}
-        onPress={() => {
-          setSelectedMapId(mapItem.id);
-          setSelectedOperatorId(null);
-          if (!isDesktop) {
-            setMobileStep(1);
-          }
-        }}
+        item={item}
+        isSelected={selectedMapId === item.id}
+        onPress={handleSelectMap}
         theme={theme}
       />
     );
-  };
+  }, [selectedMapId, handleSelectMap, theme]);
 
   // Render Operator Tile Item
-  const renderOperatorItem = (opItem: typeof operators[0]) => {
+  const renderOperatorItem = useCallback(({ item }: { item: typeof operators[0] }) => {
     return (
       <OperatorTile
-        item={opItem}
-        isSelected={selectedOperatorId === opItem.id}
-        onPress={() => {
-          setSelectedOperatorId(opItem.id);
-          if (!isDesktop) {
-            setMobileStep(2);
-          }
-        }}
+        item={item}
+        isSelected={selectedOperatorId === item.id}
+        onPress={handleSelectOperator}
         theme={theme}
       />
     );
-  };
+  }, [selectedOperatorId, handleSelectOperator, theme]);
 
   // Render Video Link Card Item
   const renderVideoItem = (video: VideoLink) => {
@@ -558,7 +562,7 @@ export default function CompanionScreen() {
 
           <FlatList
             data={filteredMaps}
-            renderItem={({ item }) => renderMapItem(item)}
+            renderItem={renderMapItem}
             keyExtractor={(item) => item.id}
             contentContainerStyle={styles.scrollList}
             showsVerticalScrollIndicator={false}
@@ -631,7 +635,7 @@ export default function CompanionScreen() {
 
               <FlatList
                 data={filteredOperators}
-                renderItem={({ item }) => renderOperatorItem(item)}
+                renderItem={renderOperatorItem}
                 keyExtractor={(item) => item.id}
                 numColumns={2}
                 columnWrapperStyle={{ justifyContent: 'space-between', marginBottom: Spacing.two }}
@@ -756,7 +760,7 @@ export default function CompanionScreen() {
 
             <FlatList
               data={filteredMaps}
-              renderItem={({ item }) => renderMapItem(item)}
+              renderItem={renderMapItem}
               keyExtractor={(item) => item.id}
               contentContainerStyle={styles.mobileScrollContent}
               showsVerticalScrollIndicator={false}
@@ -839,7 +843,7 @@ export default function CompanionScreen() {
 
             <FlatList
               data={filteredOperators}
-              renderItem={({ item }) => renderOperatorItem(item)}
+              renderItem={renderOperatorItem}
               keyExtractor={(item) => item.id}
               numColumns={2}
               columnWrapperStyle={{ justifyContent: 'space-between', marginBottom: Spacing.two }}

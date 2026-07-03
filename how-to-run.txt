@@ -4,3 +4,11 @@ To run your project, navigate to the directory and run one of the following npm 
 - npm run android
 - npm run ios # you need to use macOS to build the iOS project - use the Expo app if you need to do iOS development without a Mac
 - npm run web
+
+ Whenever you add new map or operator images to the project assets:
+
+  1. Save the new images into their standard directories:
+      • Maps:  assets/images/maps/
+      • Operators:  assets/images/operators/
+  2. Open your terminal in the project root directory and run:
+    npm run optimize-images

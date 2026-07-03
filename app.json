@@ -9,7 +9,8 @@
     "userInterfaceStyle": "automatic",
     "ios": {
       "icon": "./assets/expo.icon",
-      "bundleIdentifier": "com.shaharsudai.r6companion"
+      "bundleIdentifier": "com.shaharsudai.r6companion",
+      "supportsTablet": true
     },
     "android": {
       "package": "com.shaharsudai.r6companion",
