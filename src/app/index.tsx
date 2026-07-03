@@ -199,7 +199,7 @@ function TacticalIcon({
     case 'map':
       return <Text style={{ fontSize: size }}>🗺️</Text>;
     case 'person':
-      return <Text style={{ fontSize: size }}>🥷</Text>;
+      return <Text style={{ fontSize: size }}>🪖</Text>;
     case 'lock':
       return <Text style={{ fontSize: size }}>🔒</Text>;
     default:
@@ -711,13 +711,32 @@ export default function CompanionScreen() {
             </View>
 
             {/* Operator Filters */}
-            <View style={[styles.filterBar, { marginHorizontal: Spacing.three, marginBottom: Spacing.two }]}>
-              <View style={styles.roleFilterContainer}>
+            <View style={styles.mobileFilterBar}>
+              {/* Search Bar */}
+              <View style={[styles.searchWrapper, { marginHorizontal: 0, marginBottom: Spacing.two }]}>
+                <TacticalIcon name="search" color={theme.textSecondary} size={16} />
+                <TextInput
+                  style={[styles.searchInput, { color: theme.text, backgroundColor: theme.background }]}
+                  placeholder="Search operator..."
+                  placeholderTextColor={theme.textSecondary}
+                  value={opSearch}
+                  onChangeText={setOpSearch}
+                />
+                {opSearch.length > 0 && (
+                  <Pressable onPress={() => setOpSearch('')}>
+                    <TacticalIcon name="close" color={theme.textSecondary} size={14} />
+                  </Pressable>
+                )}
+              </View>
+
+              {/* Role filter toggles */}
+              <View style={[styles.roleFilterContainer, { alignSelf: 'stretch' }]}>
                 {(['all', 'attacker', 'defender'] as const).map((role) => (
                   <Pressable
                     key={role}
                     style={[
                       styles.filterTab,
+                      { flex: 1 },
                       opRoleFilter === role && {
                         backgroundColor: theme.primary,
                       },
@@ -727,23 +746,13 @@ export default function CompanionScreen() {
                     <Text
                       style={[
                         styles.filterTabText,
-                        { color: opRoleFilter === role ? '#000' : theme.text, fontSize: 11 },
+                        { color: opRoleFilter === role ? '#000' : theme.text, fontSize: 11, textAlign: 'center' },
                       ]}
                     >
                       {role.toUpperCase()}
                     </Text>
                   </Pressable>
                 ))}
-              </View>
-
-              <View style={[styles.searchWrapper, { flex: 1, marginLeft: Spacing.two }]}>
-                <TextInput
-                  style={[styles.searchInput, { color: theme.text, backgroundColor: theme.background }]}
-                  placeholder="Search op..."
-                  placeholderTextColor={theme.textSecondary}
-                  value={opSearch}
-                  onChangeText={setOpSearch}
-                />
               </View>
             </View>
 
@@ -766,7 +775,7 @@ export default function CompanionScreen() {
                 <Text style={[styles.backBtnText, { color: theme.primary }]}>OPERATORS</Text>
               </Pressable>
               <Text style={[styles.breadcrumbText, { color: theme.textSecondary }]} numberOfLines={1}>
-                🗺️ {selectedMap.name} &gt; 🥷 {selectedOperator.name}
+                🗺️ {selectedMap.name} &gt; 🪖 {selectedOperator.name}
               </Text>
             </View>
 
@@ -1367,6 +1376,11 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     flex: 1,
+  },
+  mobileFilterBar: {
+    paddingHorizontal: Spacing.three,
+    marginBottom: Spacing.three,
+    gap: Spacing.one,
   },
   mobileOpGridContent: {
     paddingHorizontal: Spacing.three,
