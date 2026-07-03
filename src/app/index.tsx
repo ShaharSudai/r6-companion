@@ -208,6 +208,107 @@ function TacticalIcon({
   }
 }
 
+const MapCard = React.memo(({
+  item,
+  isSelected,
+  onPress,
+  theme
+}: {
+  item: typeof maps[0];
+  isSelected: boolean;
+  onPress: () => void;
+  theme: any;
+}) => {
+  const mapImage = MapImages[item.id];
+  return (
+    <Pressable
+      style={({ pressed }) => [
+        styles.mapCard,
+        {
+          backgroundColor: theme.backgroundElement,
+          borderColor: isSelected ? theme.primary : theme.border,
+          transform: [{ scale: pressed ? 0.98 : 1 }],
+        },
+      ]}
+      onPress={onPress}
+    >
+      {mapImage && (
+        <View style={StyleSheet.absoluteFillObject}>
+          <Image
+            source={mapImage}
+            style={{ width: '100%', height: '100%' }}
+            contentFit="cover"
+            transition={null}
+            cachePolicy="memory-disk"
+          />
+          <View style={[StyleSheet.absoluteFillObject, { backgroundColor: 'rgba(0, 0, 0, 0.65)' }]} />
+        </View>
+      )}
+      <View style={styles.mapCardContent}>
+        <View style={styles.mapHeaderRow}>
+          <TacticalIcon name="map" color={isSelected ? theme.primary : '#fff'} size={18} />
+          <Text style={[styles.mapName, { color: '#fff' }]}>{item.name}</Text>
+        </View>
+      </View>
+      {isSelected && (
+        <View style={[styles.activeIndicator, { backgroundColor: theme.primary }]} />
+      )}
+    </Pressable>
+  );
+});
+MapCard.displayName = 'MapCard';
+
+const OperatorTile = React.memo(({
+  item,
+  isSelected,
+  onPress,
+  theme
+}: {
+  item: typeof operators[0];
+  isSelected: boolean;
+  onPress: () => void;
+  theme: any;
+}) => {
+  const isAttacker = item.role === 'attacker';
+  const roleColor = isAttacker ? theme.attacker : theme.defender;
+  const opImage = OperatorImages[item.id];
+
+  return (
+    <Pressable
+      style={({ pressed }) => [
+        styles.opTile,
+        {
+          backgroundColor: theme.backgroundElement,
+          borderColor: isSelected ? theme.primary : theme.border,
+          transform: [{ scale: pressed ? 0.96 : 1 }],
+        },
+      ]}
+      onPress={onPress}
+    >
+      <View style={[styles.opRoleBar, { backgroundColor: roleColor }]} />
+      {opImage && (
+        <Image
+          source={opImage}
+          style={styles.opAvatar}
+          contentFit="contain"
+          transition={null}
+          cachePolicy="memory-disk"
+        />
+      )}
+      <Text style={[styles.opName, { color: theme.text }]}>{item.name}</Text>
+      <Text style={[styles.opRoleText, { color: roleColor }]}>
+        {item.role.toUpperCase()}
+      </Text>
+      {isSelected && (
+        <View style={[styles.opCheckIcon, { backgroundColor: theme.primary }]}>
+          <TacticalIcon name="play" color="#000" size={10} />
+        </View>
+      )}
+    </Pressable>
+  );
+});
+OperatorTile.displayName = 'OperatorTile';
+
 export default function CompanionScreen() {
   const theme = useTheme();
   const { width } = useWindowDimensions();
@@ -329,85 +430,36 @@ export default function CompanionScreen() {
 
   // Render Map Card Item
   const renderMapItem = (mapItem: typeof maps[0]) => {
-    const isSelected = selectedMapId === mapItem.id;
-    const mapImage = MapImages[mapItem.id];
     return (
-      <Pressable
-        key={mapItem.id}
-        style={({ pressed }) => [
-          styles.mapCard,
-          {
-            backgroundColor: theme.backgroundElement,
-            borderColor: isSelected ? theme.primary : theme.border,
-            transform: [{ scale: pressed ? 0.98 : 1 }],
-          },
-        ]}
+      <MapCard
+        item={mapItem}
+        isSelected={selectedMapId === mapItem.id}
         onPress={() => {
           setSelectedMapId(mapItem.id);
-          setSelectedOperatorId(null); // Reset operator when map changes
+          setSelectedOperatorId(null);
           if (!isDesktop) {
             setMobileStep(1);
           }
         }}
-      >
-        {mapImage && (
-          <View style={StyleSheet.absoluteFillObject}>
-            <Image source={mapImage} style={{ width: '100%', height: '100%' }} contentFit="cover" transition={null} cachePolicy="memory-disk" />
-            <View style={[StyleSheet.absoluteFillObject, { backgroundColor: 'rgba(0, 0, 0, 0.65)' }]} />
-          </View>
-        )}
-        <View style={styles.mapCardContent}>
-          <View style={styles.mapHeaderRow}>
-            <TacticalIcon name="map" color={isSelected ? theme.primary : '#fff'} size={18} />
-            <Text style={[styles.mapName, { color: '#fff' }]}>{mapItem.name}</Text>
-          </View>
-        </View>
-        {isSelected && (
-          <View style={[styles.activeIndicator, { backgroundColor: theme.primary }]} />
-        )}
-      </Pressable>
+        theme={theme}
+      />
     );
   };
 
   // Render Operator Tile Item
   const renderOperatorItem = (opItem: typeof operators[0]) => {
-    const isSelected = selectedOperatorId === opItem.id;
-    const isAttacker = opItem.role === 'attacker';
-    const roleColor = isAttacker ? theme.attacker : theme.defender;
-    const opImage = OperatorImages[opItem.id];
-
     return (
-      <Pressable
-        key={opItem.id}
-        style={({ pressed }) => [
-          styles.opTile,
-          {
-            backgroundColor: theme.backgroundElement,
-            borderColor: isSelected ? theme.primary : theme.border,
-            transform: [{ scale: pressed ? 0.96 : 1 }],
-          },
-        ]}
+      <OperatorTile
+        item={opItem}
+        isSelected={selectedOperatorId === opItem.id}
         onPress={() => {
           setSelectedOperatorId(opItem.id);
           if (!isDesktop) {
             setMobileStep(2);
           }
         }}
-      >
-        <View style={[styles.opRoleBar, { backgroundColor: roleColor }]} />
-        {opImage && (
-          <Image source={opImage} style={styles.opAvatar} contentFit="contain" transition={null} cachePolicy="memory-disk" />
-        )}
-        <Text style={[styles.opName, { color: theme.text }]}>{opItem.name}</Text>
-        <Text style={[styles.opRoleText, { color: roleColor }]}>
-          {opItem.role.toUpperCase()}
-        </Text>
-        {isSelected && (
-          <View style={[styles.opCheckIcon, { backgroundColor: theme.primary }]}>
-            <TacticalIcon name="play" color="#000" size={10} />
-          </View>
-        )}
-      </Pressable>
+        theme={theme}
+      />
     );
   };
 
