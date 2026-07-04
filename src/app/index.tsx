@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import {
   StyleSheet,
   View,
@@ -11,6 +11,8 @@ import {
   Platform,
   Alert,
   FlatList,
+  BackHandler,
+  ToastAndroid,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
@@ -263,12 +265,14 @@ const OperatorTile = React.memo(({
   item,
   isSelected,
   onPress,
-  theme
+  theme,
+  clipCount = 0
 }: {
   item: typeof operators[0];
   isSelected: boolean;
   onPress: (id: string) => void;
   theme: any;
+  clipCount?: number;
 }) => {
   const isAttacker = item.role === 'attacker';
   const roleColor = isAttacker ? theme.attacker : theme.defender;
@@ -287,6 +291,11 @@ const OperatorTile = React.memo(({
       onPress={() => onPress(item.id)}
     >
       <View style={[styles.opRoleBar, { backgroundColor: roleColor }]} />
+      {clipCount > 0 && (
+        <View style={[styles.opClipBadge, { backgroundColor: theme.primary }]}>
+          <Text style={[styles.opClipBadgeText, { color: '#000' }]}>{clipCount}</Text>
+        </View>
+      )}
       {opImage && (
         <Image
           source={opImage}
@@ -314,6 +323,9 @@ export default function CompanionScreen() {
   const theme = useTheme();
   const { width } = useWindowDimensions();
   const isDesktop = width >= 768;
+
+  // Double back press exit tracking
+  const lastBackPressTime = useRef<number>(0);
 
   // Safe Share Intent Hook
   const { hasShareIntent, shareIntent, resetShareIntent } = useSafeShareIntent();
@@ -384,12 +396,22 @@ export default function CompanionScreen() {
     m.name.toLowerCase().includes(mapSearch.toLowerCase())
   );
 
-  // Filtering operators
-  const filteredOperators = operators.filter((o) => {
-    const matchesSearch = o.name.toLowerCase().includes(opSearch.toLowerCase());
-    const matchesRole = opRoleFilter === 'all' || o.role === opRoleFilter;
-    return matchesSearch && matchesRole;
-  });
+  // Filtering & sorting operators (placing operators with clips on the selected map at the top)
+  const filteredOperators = operators
+    .filter((o) => {
+      const matchesSearch = o.name.toLowerCase().includes(opSearch.toLowerCase());
+      const matchesRole = opRoleFilter === 'all' || o.role === opRoleFilter;
+      return matchesSearch && matchesRole;
+    })
+    .sort((a, b) => {
+      if (!selectedMapId) return 0;
+      const aCount = getLinks(selectedMapId, a.id).length;
+      const bCount = getLinks(selectedMapId, b.id).length;
+      if (aCount !== bCount) {
+        return bCount - aCount;
+      }
+      return 0;
+    });
 
   // Filtering maps in Share Intent Modal
   const filteredShareMaps = maps.filter((m) =>
@@ -488,6 +510,68 @@ export default function CompanionScreen() {
     setOpSearch('');
   }, [setSelectedMapId, setSelectedOperatorId, setMobileStep, setMapSearch, setOpSearch]);
 
+  // Android hardware back button handler
+  useEffect(() => {
+    if (Platform.OS !== 'android') return;
+
+    const onBackPress = () => {
+      // 1. If modals are open, close them first
+      if (isModalOpen) {
+        setIsModalOpen(false);
+        return true;
+      }
+      if (hasActiveShareIntent && !!shareValue) {
+        handleResetShareIntent();
+        return true;
+      }
+
+      // 2. Navigation handling
+      if (isDesktop) {
+        if (selectedMapId || selectedOperatorId) {
+          resetSelection();
+          return true;
+        }
+      } else {
+        if (mobileStep === 2) {
+          setSelectedOperatorId(null);
+          setMobileStep(1);
+          return true;
+        } else if (mobileStep === 1) {
+          setSelectedMapId(null);
+          setMobileStep(0);
+          return true;
+        }
+      }
+
+      // 3. Double press to exit if at root (mobileStep === 0 or no selections)
+      const now = Date.now();
+      if (now - lastBackPressTime.current < 2000) {
+        BackHandler.exitApp();
+        return true;
+      }
+
+      lastBackPressTime.current = now;
+      ToastAndroid.show('Press back again to exit', ToastAndroid.SHORT);
+      return true;
+    };
+
+    const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+    return () => subscription.remove();
+  }, [
+    isModalOpen,
+    hasActiveShareIntent,
+    shareValue,
+    handleResetShareIntent,
+    isDesktop,
+    selectedMapId,
+    selectedOperatorId,
+    mobileStep,
+    resetSelection,
+    setSelectedOperatorId,
+    setSelectedMapId,
+    setMobileStep,
+  ]);
+
   // ---------------- RENDERS ----------------
 
   // Render Map Card Item
@@ -504,15 +588,17 @@ export default function CompanionScreen() {
 
   // Render Operator Tile Item
   const renderOperatorItem = useCallback(({ item }: { item: typeof operators[0] }) => {
+    const clipCount = selectedMapId ? getLinks(selectedMapId, item.id).length : 0;
     return (
       <OperatorTile
         item={item}
         isSelected={selectedOperatorId === item.id}
         onPress={handleSelectOperator}
         theme={theme}
+        clipCount={clipCount}
       />
     );
-  }, [selectedOperatorId, handleSelectOperator, theme]);
+  }, [selectedMapId, selectedOperatorId, handleSelectOperator, theme, getLinks]);
 
   // Render Video Link Card Item
   const renderVideoItem = (video: VideoLink) => {
@@ -1505,6 +1591,23 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: 4,
+  },
+  opClipBadge: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+    borderRadius: 4,
+    minWidth: 16,
+    height: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  opClipBadgeText: {
+    fontSize: 9,
+    fontWeight: '900',
+    textAlign: 'center',
   },
   opAvatar: {
     width: 44,
