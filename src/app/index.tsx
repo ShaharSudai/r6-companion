@@ -21,6 +21,7 @@ import { ThemedView } from '@/components/themed-view';
 import { Spacing, BottomTabInset } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { useLinksDb, VideoLink } from '@/hooks/use-links-db';
+import { useSafeShareIntent } from '@/hooks/use-share-intent';
 import gameConfig from '@/constants/game-config.json';
 import { MapImages, OperatorImages } from '@/constants/game-assets';
 
@@ -314,6 +315,40 @@ export default function CompanionScreen() {
   const { width } = useWindowDimensions();
   const isDesktop = width >= 768;
 
+  // Safe Share Intent Hook
+  const { hasShareIntent, shareIntent, resetShareIntent } = useSafeShareIntent();
+
+  // Mock Share Intent for testing in Expo Go
+  const [mockShareIntent, setMockShareIntent] = useState<{ type: string, value: string } | null>(null);
+  
+  // Share Intent State
+  const [shareMapId, setShareMapId] = useState<string | null>(null);
+  const [shareOperatorId, setShareOperatorId] = useState<string | null>(null);
+  const [shareHeadline, setShareHeadline] = useState('');
+  const [shareMapSearch, setShareMapSearch] = useState('');
+  const [shareOpSearch, setShareOpSearch] = useState('');
+
+  const activeShareIntent = shareIntent?.value ? shareIntent : mockShareIntent;
+  const hasActiveShareIntent = hasShareIntent || !!mockShareIntent;
+
+  const handleResetShareIntent = useCallback(() => {
+    resetShareIntent();
+    setMockShareIntent(null);
+    setShareMapId(null);
+    setShareOperatorId(null);
+    setShareHeadline('');
+    setShareMapSearch('');
+    setShareOpSearch('');
+  }, [
+    resetShareIntent,
+    setMockShareIntent,
+    setShareMapId,
+    setShareOperatorId,
+    setShareHeadline,
+    setShareMapSearch,
+    setShareOpSearch
+  ]);
+
   // Load config maps and operators with safe fallbacks
   const maps = gameConfig.maps || [];
   const operators = gameConfig.operators || [];
@@ -355,6 +390,16 @@ export default function CompanionScreen() {
     const matchesRole = opRoleFilter === 'all' || o.role === opRoleFilter;
     return matchesSearch && matchesRole;
   });
+
+  // Filtering maps in Share Intent Modal
+  const filteredShareMaps = maps.filter((m) =>
+    m.name.toLowerCase().includes(shareMapSearch.toLowerCase())
+  );
+
+  // Filtering operators in Share Intent Modal
+  const filteredShareOperators = operators.filter((o) =>
+    o.name.toLowerCase().includes(shareOpSearch.toLowerCase())
+  );
 
   // Load videos for current selection
   const currentVideos = selectedMapId && selectedOperatorId 
@@ -439,7 +484,9 @@ export default function CompanionScreen() {
     setSelectedMapId(null);
     setSelectedOperatorId(null);
     setMobileStep(0);
-  }, [setSelectedMapId, setSelectedOperatorId, setMobileStep]);
+    setMapSearch('');
+    setOpSearch('');
+  }, [setSelectedMapId, setSelectedOperatorId, setMobileStep, setMapSearch, setOpSearch]);
 
   // ---------------- RENDERS ----------------
 
@@ -540,7 +587,7 @@ export default function CompanionScreen() {
           <View style={styles.columnHeader}>
             <Text style={[styles.columnTitle, { color: theme.text }]}>TACTICAL MAPS</Text>
             <Text style={[styles.columnSubtitle, { color: theme.textSecondary }]}>
-              Select target operations area
+              Select Map
             </Text>
           </View>
           
@@ -580,7 +627,7 @@ export default function CompanionScreen() {
         {/* Col 2: Operator Grid */}
         <View style={[styles.desktopColumn, { flex: 1.5, borderRightWidth: 1, borderColor: theme.border }]}>
           <View style={styles.columnHeader}>
-            <Text style={[styles.columnTitle, { color: theme.text }]}>OPERATOR ROSTER</Text>
+            <Text style={[styles.columnTitle, { color: theme.text }]}>OPERATOR</Text>
             <Text style={[styles.columnSubtitle, { color: theme.textSecondary }]}>
               {selectedMap ? `Targeting: ${selectedMap.name}` : 'Select a map first'}
             </Text>
@@ -688,7 +735,7 @@ export default function CompanionScreen() {
                       {selectedOperator.name} on {selectedMap.name}
                     </Text>
                     <Text style={[styles.dossierSubtitle, { color: theme.primary }]}>
-                      ACTIVE TACTICAL DOSSIER • {currentVideos.length} CLIP(S)
+                      ACTIVE TACTICAL DATA • {currentVideos.length} CLIP(S)
                     </Text>
                   </View>
                 </View>
@@ -718,7 +765,7 @@ export default function CompanionScreen() {
                       NO STRAT DATA FOUND
                     </Text>
                     <Text style={[styles.blueprintBody, { color: theme.textSecondary }]}>
-                      Establish communications. Click {"\"ADD CLIP\""} to upload setups, spawnpeeks, or angles for {selectedOperator.name} on {selectedMap.name}.
+                      Establish communications. Click {"\"ADD CLIP\""} to upload content for {selectedOperator.name} on {selectedMap.name}.
                     </Text>
                   </View>
                 )}
@@ -738,7 +785,7 @@ export default function CompanionScreen() {
         {mobileStep === 0 && (
           <View style={styles.mobilePanel}>
             <View style={styles.mobileHeader}>
-              <Text style={[styles.mobileTitle, { color: theme.text }]}>TACTICAL MAPS</Text>
+              <Text style={[styles.mobileTitle, { color: theme.text }]}>MAPS</Text>
               <Text style={[styles.mobileSubtitle, { color: theme.textSecondary }]}>Select mission operations area</Text>
             </View>
 
@@ -944,9 +991,26 @@ export default function CompanionScreen() {
             R6 <Text style={{ color: theme.primary }}>COMPANION</Text>
           </Text>
           <Text style={[styles.brandTagline, { color: theme.textSecondary }]}>
-            Tactical Utility & Strategic Dossier Database
+            Tactical Utility & Strategic Database
           </Text>
         </View>
+
+        {__DEV__ && (
+          <Pressable
+            style={({ pressed }) => [
+              styles.testShareBtn,
+              { borderColor: theme.primary, opacity: pressed ? 0.7 : 1, marginRight: Spacing.two }
+            ]}
+            onPress={() => {
+              setMockShareIntent({
+                type: 'weburl',
+                value: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ'
+              });
+            }}
+          >
+            <Text style={{ color: theme.primary, fontSize: 9, fontWeight: '800' }}>TEST SHARE</Text>
+          </Pressable>
+        )}
 
         {/* Global Reset */}
         {(selectedMapId || selectedOperatorId) && (
@@ -1038,6 +1102,207 @@ export default function CompanionScreen() {
           </ThemedView>
         </View>
       </Modal>
+
+      {/* RECEIVE SHARE INTEL MODAL */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={hasActiveShareIntent && !!activeShareIntent?.value}
+        onRequestClose={handleResetShareIntent}
+      >
+        <View style={styles.modalOverlay}>
+          <ThemedView type="backgroundElement" style={[styles.modalCard, { borderColor: theme.border }]}>
+            <View style={styles.modalHeader}>
+              <View>
+                <Text style={[styles.modalTitle, { color: theme.text }]}>REGISTER SHARED STRAT</Text>
+                <Text style={[styles.modalSubtitle, { color: theme.primary }]}>
+                  Identify tactical coordinates below
+                </Text>
+              </View>
+              <Pressable
+                style={({ pressed }) => [styles.modalCloseBtn, pressed && { opacity: 0.7 }]}
+                onPress={handleResetShareIntent}
+              >
+                <TacticalIcon name="close" color={theme.text} size={16} />
+              </Pressable>
+            </View>
+
+            <View style={styles.modalForm}>
+              <View style={styles.inputGroup}>
+                <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>
+                  SHARED VIDEO LINK
+                </Text>
+                <TextInput
+                  style={[styles.modalInput, { color: theme.textSecondary, borderColor: theme.border, backgroundColor: theme.background, opacity: 0.7 }]}
+                  value={activeShareIntent?.value || ''}
+                  editable={false}
+                  selectTextOnFocus={true}
+                />
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>
+                  CLIP HEADLINE / TITLE
+                </Text>
+                <TextInput
+                  style={[styles.modalInput, { color: theme.text, borderColor: theme.border, backgroundColor: theme.background }]}
+                  placeholder="e.g. Valkyrie Cam Spot or Sledge Angle"
+                  placeholderTextColor={theme.textSecondary}
+                  value={shareHeadline}
+                  onChangeText={setShareHeadline}
+                />
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>
+                  TARGET MAP
+                </Text>
+
+                {/* Search Map Bar */}
+                <View style={[styles.searchWrapper, { marginHorizontal: 0, marginBottom: Spacing.one }]}>
+                  <TacticalIcon name="search" color={theme.textSecondary} size={14} />
+                  <TextInput
+                    style={[styles.searchInput, { color: theme.text, backgroundColor: theme.background, height: 28, fontSize: 12 }]}
+                    placeholder="Search maps..."
+                    placeholderTextColor={theme.textSecondary}
+                    value={shareMapSearch}
+                    onChangeText={setShareMapSearch}
+                  />
+                  {shareMapSearch.length > 0 && (
+                    <Pressable onPress={() => setShareMapSearch('')}>
+                      <TacticalIcon name="close" color={theme.textSecondary} size={12} />
+                    </Pressable>
+                  )}
+                </View>
+
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.shareSelectionScroll} removeClippedSubviews={false}>
+                  {filteredShareMaps.map((map) => {
+                    const isSelected = shareMapId === map.id;
+                    return (
+                      <Pressable
+                        key={map.id}
+                        style={[
+                          styles.shareSelectableCard,
+                          {
+                            borderColor: isSelected ? theme.primary : theme.border,
+                            backgroundColor: isSelected ? 'rgba(32, 138, 239, 0.1)' : theme.backgroundElement
+                          }
+                        ]}
+                        onPress={() => setShareMapId(map.id)}
+                      >
+                        <Text style={{ color: isSelected ? theme.primary : '#fff', fontSize: 11, fontWeight: '700' }}>
+                          {map.name.toUpperCase()}
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
+                  {filteredShareMaps.length === 0 && (
+                    <Text style={{ color: theme.textSecondary, fontSize: 11, paddingVertical: Spacing.two }}>No maps match search</Text>
+                  )}
+                </ScrollView>
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={[styles.inputLabel, { color: theme.textSecondary }]}>
+                  TACTICAL OPERATOR
+                </Text>
+
+                {/* Search Operator Bar */}
+                <View style={[styles.searchWrapper, { marginHorizontal: 0, marginBottom: Spacing.one }]}>
+                  <TacticalIcon name="search" color={theme.textSecondary} size={14} />
+                  <TextInput
+                    style={[styles.searchInput, { color: theme.text, backgroundColor: theme.background, height: 28, fontSize: 12 }]}
+                    placeholder="Search operators..."
+                    placeholderTextColor={theme.textSecondary}
+                    value={shareOpSearch}
+                    onChangeText={setShareOpSearch}
+                  />
+                  {shareOpSearch.length > 0 && (
+                    <Pressable onPress={() => setShareOpSearch('')}>
+                      <TacticalIcon name="close" color={theme.textSecondary} size={12} />
+                    </Pressable>
+                  )}
+                </View>
+
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.shareSelectionScroll} removeClippedSubviews={false}>
+                  {filteredShareOperators.map((op) => {
+                    const isSelected = shareOperatorId === op.id;
+                    const isAttacker = op.role === 'attacker';
+                    const roleColor = isAttacker ? theme.attacker : theme.defender;
+                    return (
+                      <Pressable
+                        key={op.id}
+                        style={[
+                          styles.shareSelectableCard,
+                          {
+                            borderColor: isSelected ? theme.primary : theme.border,
+                            backgroundColor: isSelected ? 'rgba(32, 138, 239, 0.1)' : theme.backgroundElement
+                          }
+                        ]}
+                        onPress={() => setShareOperatorId(op.id)}
+                      >
+                        <Text style={{ color: isSelected ? theme.primary : '#fff', fontSize: 11, fontWeight: '700' }}>
+                          {op.name.toUpperCase()}
+                        </Text>
+                        <Text style={{ color: roleColor, fontSize: 8, marginTop: 2, fontWeight: '800' }}>
+                          {op.role.toUpperCase()}
+                        </Text>
+                      </Pressable>
+                    );
+                  })}
+                  {filteredShareOperators.length === 0 && (
+                    <Text style={{ color: theme.textSecondary, fontSize: 11, paddingVertical: Spacing.two }}>No operators match search</Text>
+                  )}
+                </ScrollView>
+              </View>
+
+              <View style={styles.modalActions}>
+                <Pressable
+                  style={({ pressed }) => [
+                    styles.modalActionBtn,
+                    { borderColor: theme.border, opacity: pressed ? 0.7 : 1 }
+                  ]}
+                  onPress={handleResetShareIntent}
+                >
+                  <Text style={{ color: theme.text, fontSize: 11, fontWeight: '800', letterSpacing: 0.5 }}>CANCEL</Text>
+                </Pressable>
+
+                <Pressable
+                  style={({ pressed }) => [
+                    styles.modalActionBtn,
+                    {
+                      backgroundColor: theme.primary,
+                      borderColor: theme.primary,
+                      opacity: pressed ? 0.8 : 1
+                    }
+                  ]}
+                  onPress={async () => {
+                    if (!activeShareIntent?.value) return;
+                    if (!shareHeadline.trim()) {
+                      Alert.alert('Validation Error', 'Please enter a headline.');
+                      return;
+                    }
+                    if (!shareMapId) {
+                      Alert.alert('Validation Error', 'Please select a target map.');
+                      return;
+                    }
+                    if (!shareOperatorId) {
+                      Alert.alert('Validation Error', 'Please select an operator.');
+                      return;
+                    }
+                    
+                    await addLink(shareMapId, shareOperatorId, shareHeadline, activeShareIntent.value);
+                    Alert.alert('Success', 'Strat registered successfully!');
+                    handleResetShareIntent();
+                  }}
+                >
+                  <Text style={{ color: '#000', fontSize: 11, fontWeight: '900', letterSpacing: 0.5 }}>REGISTER STRAT</Text>
+                </Pressable>
+              </View>
+            </View>
+          </ThemedView>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -1080,6 +1345,14 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '700',
     letterSpacing: 1,
+  },
+  testShareBtn: {
+    borderWidth: 1,
+    paddingVertical: Spacing.one,
+    paddingHorizontal: Spacing.two,
+    borderRadius: 4,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   
   // Desktop columns styling
@@ -1576,5 +1849,32 @@ const styles = StyleSheet.create({
     fontSize: 13,
     textAlign: 'center',
     paddingVertical: Spacing.four,
+  },
+  shareSelectionScroll: {
+    marginVertical: Spacing.one,
+    paddingVertical: Spacing.one,
+  },
+  shareSelectableCard: {
+    paddingVertical: Spacing.two,
+    paddingHorizontal: Spacing.three,
+    borderRadius: 6,
+    borderWidth: 1,
+    marginRight: Spacing.two,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: 90,
+  },
+  modalActionBtn: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 6,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+  },
+  modalActions: {
+    flexDirection: 'row',
+    gap: Spacing.two,
+    marginTop: Spacing.three,
   },
 });

@@ -2,7 +2,7 @@
   "expo": {
     "name": "r6-companion",
     "slug": "r6-companion",
-    "version": "1.0.0",
+    "version": "2.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "r6companion",
@@ -38,7 +38,8 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 76
         }
-      ]
+      ],
+      "expo-share-intent"
     ],
     "experiments": {
       "typedRoutes": true,
