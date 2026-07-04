@@ -1,56 +1,117 @@
-# Welcome to your Expo app 👋
+# 🎮 R6 Companion
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+R6 Companion is a premium, high-performance tactical helper and strategic database application designed for **Tom Clancy's Rainbow Six Siege** players. It acts as an interactive strategic dossier, allowing players to catalog and reference setup guides, camera placements, defensive structures, and gadget line-ups for specific operators and maps.
 
-## Get started
+---
 
-1. Install dependencies
+## 🚀 Key Features
 
-   ```bash
-   npm install
-   ```
+*   **Operator & Map dossiers**: Browse operators by role (Attacker/Defender) and map details in a highly responsive layout.
+*   **Tactical Clip Database**: Add, view, and manage tactical clips, walkthroughs, or YouTube guides directly linked to any operator on any map.
+*   **System Share Intent Target**: Direct integration with the native share sheet. While scrolling YouTube, TikTok, or Instagram Reels, tap **Share**, choose **R6 Companion**, and register the clip immediately without leaving the source app!
+*   **Offline Storage**: Powered by AsyncStorage, keeping your entire personal setup catalog persistent and stored locally on your device.
+*   **Platform Responsive**: Optimized user experience for both Mobile devices (touch-centric sliders) and Desktop viewports.
 
-2. Start the app
+---
 
-   ```bash
-   npx expo start
-   ```
+## 📲 Downloads
 
-In the output, you'll find options to open the app in a
+<!-- PLACEHOLDERS FOR APP STORE & GOOGLE PLAY DOWNLOAD LINKS -->
+<table>
+  <tr>
+    <td>
+      <a href="YOUR_APP_STORE_LINK_HERE">
+        <img src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg" alt="Download on the App Store" height="40" />
+      </a>
+    </td>
+    <td>
+      <a href="YOUR_PLAY_STORE_LINK_HERE">
+        <img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" alt="Get it on Google Play" height="60" />
+      </a>
+    </td>
+  </tr>
+</table>
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+*(Please replace `YOUR_APP_STORE_LINK_HERE` and `YOUR_PLAY_STORE_LINK_HERE` with your active store links).*
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+---
 
-## Get a fresh project
+## 🛠️ Development & Local Setup
 
-When you're ready, run:
+### Prerequisites
 
+*   Node.js (LTS version recommended)
+*   Expo CLI (`npm install -g expo-cli`)
+*   Android Studio / Xcode (for local emulators)
+
+### Installation
+
+1.  **Clone the repository**:
+    ```bash
+    git clone https://github.com/YOUR_USERNAME/r6-companion.git
+    cd r6-companion
+    ```
+
+2.  **Install dependencies**:
+    ```bash
+    npm install
+    ```
+
+---
+
+## 💻 Running the App
+
+### 1. Running in Expo Go (For UI & Basic Database Logic)
+Start the bundler and load the app inside Expo Go on your physical device or emulator:
 ```bash
-npm run reset-project
+npm run start
 ```
+*Note: Native share intents cannot be tested directly in Expo Go. Use the built-in **"TEST SHARE"** debug header button to simulate incoming share sheets during development.*
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+### 2. Running in Development Build (For Native Share Intent)
+To compile native configurations (AndroidManifest, Intent Filters, and iOS Share Extensions) and run the full native application:
 
-### Other setup steps
+*   **Generate native code structure**:
+    ```bash
+    npx expo prebuild --clean
+    ```
+*   **Run on Android Emulator / Connected Device**:
+    ```bash
+    npx expo run:android
+    ```
+*   **Run on iOS Simulator / Connected Device**:
+    ```bash
+    npx expo run:ios
+    ```
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+---
 
-## Learn more
+## ⚡ Production Builds (EAS)
 
-To learn more about developing your project with Expo, look at the following resources:
+This project is configured for Expo Application Services (EAS). To submit updates to the app stores, use the following profiles:
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+*   **Build Android Production APK / AAB**:
+    ```bash
+    eas build -p android --profile production
+    ```
+*   **Build iOS Production Bundle**:
+    ```bash
+    eas build -p ios --profile production
+    ```
+*   **Build iOS Simulator client (Credential-free)**:
+    ```bash
+    eas build -p ios --profile simulator
+    ```
 
-## Join the community
+---
 
-Join our community of developers creating universal apps.
+## 🧹 Code Quality Utilities
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+*   **Optimize and Compress Maps/Operators Images**:
+    ```bash
+    npm run optimize-images
+    ```
+*   **Run ESLint Checks**:
+    ```bash
+    npm run lint
+    ```
