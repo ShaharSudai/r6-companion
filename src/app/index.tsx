@@ -328,7 +328,7 @@ export default function CompanionScreen() {
   const [shareMapSearch, setShareMapSearch] = useState('');
   const [shareOpSearch, setShareOpSearch] = useState('');
 
-  const activeShareIntent = shareIntent?.value ? shareIntent : mockShareIntent;
+  const shareValue = shareIntent?.webUrl || shareIntent?.text || mockShareIntent?.value || '';
   const hasActiveShareIntent = hasShareIntent || !!mockShareIntent;
 
   const handleResetShareIntent = useCallback(() => {
@@ -1107,7 +1107,7 @@ export default function CompanionScreen() {
       <Modal
         animationType="slide"
         transparent={true}
-        visible={hasActiveShareIntent && !!activeShareIntent?.value}
+        visible={hasActiveShareIntent && !!shareValue}
         onRequestClose={handleResetShareIntent}
       >
         <View style={styles.modalOverlay}>
@@ -1134,7 +1134,7 @@ export default function CompanionScreen() {
                 </Text>
                 <TextInput
                   style={[styles.modalInput, { color: theme.textSecondary, borderColor: theme.border, backgroundColor: theme.background, opacity: 0.7 }]}
-                  value={activeShareIntent?.value || ''}
+                  value={shareValue}
                   editable={false}
                   selectTextOnFocus={true}
                 />
@@ -1277,7 +1277,7 @@ export default function CompanionScreen() {
                     }
                   ]}
                   onPress={async () => {
-                    if (!activeShareIntent?.value) return;
+                    if (!shareValue) return;
                     if (!shareHeadline.trim()) {
                       Alert.alert('Validation Error', 'Please enter a headline.');
                       return;
@@ -1291,7 +1291,7 @@ export default function CompanionScreen() {
                       return;
                     }
                     
-                    await addLink(shareMapId, shareOperatorId, shareHeadline, activeShareIntent.value);
+                    await addLink(shareMapId, shareOperatorId, shareHeadline, shareValue);
                     Alert.alert('Success', 'Strat registered successfully!');
                     handleResetShareIntent();
                   }}
