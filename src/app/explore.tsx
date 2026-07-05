@@ -73,7 +73,7 @@ export default function ExploreScreen() {
         {/* Configuration Guide panel */}
         <ThemedView type="backgroundElement" style={[styles.guidePanel, { borderColor: theme.primary }]}>
           <Text style={[styles.panelTitle, { color: theme.text }]}>
-            ⚙️ EDITING MAPS AND OPERATORS
+            EDITING MAPS AND OPERATORS
           </Text>
           <Text style={[styles.panelBody, { color: theme.textSecondary }]}>
             You can customize the available maps and operators at any time by editing the JSON configuration file located at:
@@ -92,7 +92,7 @@ export default function ExploreScreen() {
         <View style={styles.listsSection}>
           <View style={styles.listContainer}>
             <Text style={[styles.listSectionTitle, { color: theme.text }]}>
-              🗺️ LOADED MAPS ({maps.length})
+              LOADED MAPS ({maps.length})
             </Text>
             <ThemedView type="backgroundElement" style={[styles.listWrapper, { borderColor: theme.border }]}>
               {maps.map((m) => (
@@ -106,7 +106,7 @@ export default function ExploreScreen() {
 
           <View style={styles.listContainer}>
             <Text style={[styles.listSectionTitle, { color: theme.text }]}>
-              🥷 LOADED OPERATORS ({operators.length})
+              LOADED OPERATORS ({operators.length})
             </Text>
             
             <ThemedView type="backgroundElement" style={[styles.listWrapper, { borderColor: theme.border }]}>

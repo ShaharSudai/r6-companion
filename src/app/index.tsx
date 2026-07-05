@@ -201,11 +201,32 @@ function TacticalIcon({
         </View>
       );
     case 'map':
-      return <Text style={{ fontSize: size }}>🗺️</Text>;
+      return (
+        <View style={{ width: size, height: size, borderWidth: 1.2, borderColor: color, borderRadius: 2, padding: 2, justifyContent: 'space-between' }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', height: '40%' }}>
+            <View style={{ width: '40%', height: '100%', backgroundColor: color }} />
+            <View style={{ width: '40%', height: '100%', borderWidth: 1.2, borderColor: color }} />
+          </View>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', height: '40%' }}>
+            <View style={{ width: '40%', height: '100%', borderWidth: 1.2, borderColor: color }} />
+            <View style={{ width: '40%', height: '100%', backgroundColor: color }} />
+          </View>
+        </View>
+      );
     case 'person':
-      return <Text style={{ fontSize: size }}>🪖</Text>;
+      return (
+        <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
+          <View style={{ width: size * 0.45, height: size * 0.45, borderRadius: size * 0.22, borderWidth: 1.2, borderColor: color, marginBottom: 1 }} />
+          <View style={{ width: size * 0.8, height: size * 0.3, borderTopLeftRadius: size * 0.25, borderTopRightRadius: size * 0.25, borderWidth: 1.2, borderBottomWidth: 0, borderColor: color }} />
+        </View>
+      );
     case 'lock':
-      return <Text style={{ fontSize: size }}>🔒</Text>;
+      return (
+        <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
+          <View style={{ width: size * 0.5, height: size * 0.4, borderTopLeftRadius: size * 0.25, borderTopRightRadius: size * 0.25, borderWidth: 1.2, borderBottomWidth: 0, borderColor: color, position: 'absolute', top: 1 }} />
+          <View style={{ width: size * 0.7, height: size * 0.5, borderWidth: 1.2, borderColor: color, borderRadius: 2, backgroundColor: 'transparent', position: 'absolute', bottom: 1 }} />
+        </View>
+      );
     default:
       return null;
   }
@@ -249,7 +270,6 @@ const MapCard = React.memo(({
       )}
       <View style={styles.mapCardContent}>
         <View style={styles.mapHeaderRow}>
-          <TacticalIcon name="map" color={isSelected ? theme.primary : '#fff'} size={18} />
           <Text style={[styles.mapName, { color: '#fff' }]}>{item.name}</Text>
         </View>
       </View>
@@ -872,7 +892,7 @@ export default function CompanionScreen() {
           <View style={styles.mobilePanel}>
             <View style={styles.mobileHeader}>
               <Text style={[styles.mobileTitle, { color: theme.text }]}>MAPS</Text>
-              <Text style={[styles.mobileSubtitle, { color: theme.textSecondary }]}>Select mission operations area</Text>
+              <Text style={[styles.mobileSubtitle, { color: theme.textSecondary }]}>Select map from the list below</Text>
             </View>
 
             <View style={[styles.searchWrapper, { marginHorizontal: Spacing.three, marginBottom: Spacing.two }]}>
@@ -919,13 +939,13 @@ export default function CompanionScreen() {
                 <Text style={[styles.backBtnText, { color: theme.primary }]}>MAPS</Text>
               </Pressable>
               <Text style={[styles.breadcrumbText, { color: theme.textSecondary }]}>
-                🗺️ {selectedMap.name}
+                {selectedMap.name}
               </Text>
             </View>
 
             <View style={styles.mobileHeader}>
-              <Text style={[styles.mobileTitle, { color: theme.text }]}>SELECT OPERATOR</Text>
-              <Text style={[styles.mobileSubtitle, { color: theme.textSecondary }]}>Choose matching tactical operator</Text>
+              <Text style={[styles.mobileTitle, { color: theme.text }]}>OPERATORS</Text>
+              <Text style={[styles.mobileSubtitle, { color: theme.textSecondary }]}>Choose operator from the list below</Text>
             </View>
 
             {/* Operator Filters */}
@@ -1002,8 +1022,8 @@ export default function CompanionScreen() {
                 <TacticalIcon name="back" color={theme.primary} size={16} />
                 <Text style={[styles.backBtnText, { color: theme.primary }]}>OPERATORS</Text>
               </Pressable>
-              <Text style={[styles.breadcrumbText, { color: theme.textSecondary }]} numberOfLines={1}>
-                🗺️ {selectedMap.name} &gt; 🪖 {selectedOperator.name}
+              <Text style={[styles.breadcrumbText, { color: theme.textSecondary }]}>
+                {selectedMap.name} &gt; {selectedOperator.name}
               </Text>
             </View>
 
@@ -1056,7 +1076,7 @@ export default function CompanionScreen() {
                       INTEL RECON EMPTY
                     </Text>
                     <Text style={[styles.blueprintBody, { color: theme.textSecondary }]}>
-                      Tap the {"\"+\""} button to register setup guides, camera spots, or gadget angles for {selectedOperator.name} on {selectedMap.name}.
+                      Tap the {"\"+\""} button to register clip guides for {selectedOperator.name} on {selectedMap.name}.
                     </Text>
                   </View>
                 )}
@@ -1261,7 +1281,7 @@ export default function CompanionScreen() {
                   )}
                 </View>
 
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.shareSelectionScroll} removeClippedSubviews={false}>
+                <ScrollView key={shareMapSearch} horizontal showsHorizontalScrollIndicator={false} style={styles.shareSelectionScroll} removeClippedSubviews={false}>
                   {filteredShareMaps.map((map) => {
                     const isSelected = shareMapId === map.id;
                     return (
@@ -1310,7 +1330,7 @@ export default function CompanionScreen() {
                   )}
                 </View>
 
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.shareSelectionScroll} removeClippedSubviews={false}>
+                <ScrollView key={shareOpSearch} horizontal showsHorizontalScrollIndicator={false} style={styles.shareSelectionScroll} removeClippedSubviews={false}>
                   {filteredShareOperators.map((op) => {
                     const isSelected = shareOperatorId === op.id;
                     const isAttacker = op.role === 'attacker';
@@ -1490,7 +1510,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 6,
     justifyContent: 'center',
-    paddingHorizontal: Spacing.three,
     position: 'relative',
     overflow: 'hidden',
   },
@@ -1650,7 +1669,6 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     marginBottom: Spacing.three,
     justifyContent: 'center',
-    paddingHorizontal: Spacing.four,
     position: 'relative',
   },
   dossierContent: {
